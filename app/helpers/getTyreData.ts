@@ -1,11 +1,11 @@
 import { CarDamageData } from "@/types/CarDamageData";
 import { CarTelemetryData } from "@/types/CarTelemetryData";
 
-enum Tyre {
-  FrontLeft = 0,
-  FrontRight = 1,
-  RearLeft = 2,
-  RearRight = 3,
+export enum Tyre {
+  RearLeft = 0,
+  RearRight = 1,
+  FrontLeft = 2,
+  FrontRight = 3,
 }
 
 const getTyreData = (

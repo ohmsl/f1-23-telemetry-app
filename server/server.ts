@@ -30,7 +30,6 @@ TelemetryServer.on("participants", (data) => {
 
 TelemetryServer.on("carTelemetry", (data) => {
   io.emit("carTelemetry", toJSON(data));
-  store.storeTelemetry(data);
 });
 
 TelemetryServer.on("carDamage", (data) => {
@@ -47,11 +46,11 @@ TelemetryServer.on("error", (error: Error) => {
 
 TelemetryServer.start();
 
-setInterval(() => {
-  const data = store.getSpeedForLast2Seconds();
-  io.emit("speed", toJSON(data));
-  console.log(data);
-}, 2000);
+// setInterval(() => {
+//   const data = store.getSpeedForLast2Seconds();
+//   io.emit("speed", toJSON(data));
+//   console.log(data);
+// }, 2000);
 
 io.on("connection", (socket: Socket) => {
   console.log("A user connected");

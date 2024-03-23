@@ -2,7 +2,7 @@ import { CarDamageData } from "@/types/CarDamageData";
 import { CarStatusData } from "@/types/CarStatusData";
 import { CarTelemetryData } from "@/types/CarTelemetryData";
 import { Box, Stack, Typography } from "@mui/material";
-import getTyreData from "../helpers/getTyreData";
+import getTyreData, { Tyre } from "../helpers/getTyreData";
 import Car from "./Car/Car";
 import StatStack from "./StatStack";
 
@@ -69,7 +69,7 @@ const CarStatus = ({
               {
                 title: "Temp",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 0)
+                  getTyreData(carTelemetryData, carDamageData, Tyre.FrontLeft)
                     .outerTemperature
                 } °C`,
                 color: "warning",
@@ -77,7 +77,8 @@ const CarStatus = ({
               {
                 title: "Pressure",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 0).pressure
+                  getTyreData(carTelemetryData, carDamageData, Tyre.FrontLeft)
+                    .pressure
                 } PSI`,
                 color: "primary",
               },
@@ -90,7 +91,7 @@ const CarStatus = ({
               {
                 title: "Temp",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 1)
+                  getTyreData(carTelemetryData, carDamageData, Tyre.RearLeft)
                     .outerTemperature
                 } °C`,
                 color: "warning",
@@ -98,7 +99,8 @@ const CarStatus = ({
               {
                 title: "Pressure",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 1).pressure
+                  getTyreData(carTelemetryData, carDamageData, Tyre.RearLeft)
+                    .pressure
                 } PSI`,
                 color: "primary",
               },
@@ -119,7 +121,7 @@ const CarStatus = ({
               {
                 title: "Temp",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 2)
+                  getTyreData(carTelemetryData, carDamageData, Tyre.FrontRight)
                     .outerTemperature
                 } °C`,
                 color: "warning",
@@ -127,7 +129,8 @@ const CarStatus = ({
               {
                 title: "Pressure",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 2).pressure
+                  getTyreData(carTelemetryData, carDamageData, Tyre.FrontRight)
+                    .pressure
                 } PSI`,
                 color: "primary",
               },
@@ -141,7 +144,7 @@ const CarStatus = ({
               {
                 title: "Temp",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 3)
+                  getTyreData(carTelemetryData, carDamageData, Tyre.RearRight)
                     .outerTemperature
                 } °C`,
                 color: "warning",
@@ -149,7 +152,8 @@ const CarStatus = ({
               {
                 title: "Pressure",
                 value: `${
-                  getTyreData(carTelemetryData, carDamageData, 3).pressure
+                  getTyreData(carTelemetryData, carDamageData, Tyre.RearRight)
+                    .pressure
                 } PSI`,
                 color: "primary",
               },

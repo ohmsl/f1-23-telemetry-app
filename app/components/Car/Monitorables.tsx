@@ -1,3 +1,4 @@
+import { Tyre } from "@/app/helpers/getTyreData";
 import { CarDamageData } from "@/types/CarDamageData";
 import { CarTelemetryData } from "@/types/CarTelemetryData";
 
@@ -108,11 +109,11 @@ export const Monitorables = ({
               id="Outer"
               d="M120 326.636H136C138.761 326.636 141 324.398 141 321.636V286C141 283.239 138.761 281 136 281H120C117.239 281 115 283.239 115 286V321.636C115 324.398 117.239 326.636 120 326.636Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[3] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.RearRight] || 0
               )}
               fill-opacity="0.3"
               stroke={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[3] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.RearRight] || 0
               )}
               stroke-width="2"
             />
@@ -120,7 +121,7 @@ export const Monitorables = ({
               id="Inner"
               d="M133.636 285.273H122.364C121.259 285.273 120.364 286.168 120.364 287.273V320.364C120.364 321.468 121.259 322.364 122.364 322.364H133.636C134.741 322.364 135.636 321.468 135.636 320.364V287.273C135.636 286.168 134.741 285.273 133.636 285.273Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresInnerTemperature[3] || 0
+                carTelemetryData?.m_tyresInnerTemperature[Tyre.RearRight] || 0
               )}
             />
           </g>
@@ -129,11 +130,11 @@ export const Monitorables = ({
               id="Outer_2"
               d="M14.0001 326.636H30C32.7614 326.636 35 324.398 35 321.636V286C35 283.239 32.7614 281 30 281H14.0001C11.2387 281 9.00009 283.239 9.00009 286V321.636C9.00009 324.398 11.2387 326.636 14.0001 326.636Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[2] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.RearLeft] || 0
               )}
               fill-opacity="0.3"
               stroke={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[2] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.RearLeft] || 0
               )}
               stroke-width="2"
             />
@@ -141,7 +142,7 @@ export const Monitorables = ({
               id="Inner_2"
               d="M27.6364 285.273H16.3636C15.2591 285.273 14.3636 286.168 14.3636 287.273V320.364C14.3636 321.468 15.2591 322.364 16.3636 322.364H27.6364C28.7409 322.364 29.6364 321.468 29.6364 320.364V287.273C29.6364 286.168 28.7409 285.273 27.6364 285.273Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresInnerTemperature[2] || 0
+                carTelemetryData?.m_tyresInnerTemperature[Tyre.RearLeft] || 0
               )}
             />
           </g>
@@ -150,11 +151,13 @@ export const Monitorables = ({
               id="Outer_3"
               d="M120 105H134C136.761 105 139 102.761 139 100V68C139 65.2386 136.761 63 134 63H120C117.239 63 115 65.2386 115 68V100C115 102.761 117.239 105 120 105Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[1] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.FrontRight] ||
+                  0
               )}
               fill-opacity="0.3"
               stroke={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[1] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.FrontRight] ||
+                  0
               )}
               stroke-width="2"
             />
@@ -162,7 +165,7 @@ export const Monitorables = ({
               id="Inner_3"
               d="M132 67H122C120.895 67 120 67.8954 120 69V99C120 100.105 120.895 101 122 101H132C133.105 101 134 100.105 134 99V69C134 67.8954 133.105 67 132 67Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresInnerTemperature[1] || 0
+                carTelemetryData?.m_tyresInnerTemperature[Tyre.FrontRight] || 0
               )}
             />
           </g>
@@ -171,11 +174,11 @@ export const Monitorables = ({
               id="Outer_4"
               d="M16.0001 105H30C32.7614 105 35 102.761 35 100V68C35 65.2386 32.7614 63 30 63H16.0001C13.2387 63 11.0001 65.2386 11.0001 68V100C11.0001 102.761 13.2387 105 16.0001 105Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[0] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.FrontLeft] || 0
               )}
               fill-opacity="0.3"
               stroke={determineTyreColor(
-                carTelemetryData?.m_tyresSurfaceTemperature[0] || 0
+                carTelemetryData?.m_tyresSurfaceTemperature[Tyre.FrontLeft] || 0
               )}
               stroke-width="2"
             />
@@ -183,7 +186,7 @@ export const Monitorables = ({
               id="Inner_4"
               d="M28 67H18C16.8954 67 16 67.8954 16 69V99C16 100.105 16.8954 101 18 101H28C29.1046 101 30 100.105 30 99V69C30 67.8954 29.1046 67 28 67Z"
               fill={determineTyreColor(
-                carTelemetryData?.m_tyresInnerTemperature[0] || 0
+                carTelemetryData?.m_tyresInnerTemperature[Tyre.FrontLeft] || 0
               )}
             />
           </g>
