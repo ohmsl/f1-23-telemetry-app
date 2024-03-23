@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface PacketMotionExData {
   m_header: PacketHeader; // Header
   m_suspensionPosition: number[]; // Note: All wheel arrays have the following order: RL, RR, FL, FR

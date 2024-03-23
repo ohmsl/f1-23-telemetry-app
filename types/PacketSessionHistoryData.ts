@@ -1,4 +1,5 @@
 import { LapHistoryData } from "./LapHistoryData";
+import { PacketHeader } from "./PacketHeader";
 import { TyreStintHistoryData } from "./TyreStintHistoryData";
 
 export interface PacketSessionHistoryData {

@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface TyreSetData {
   m_actualTyreCompound: number; // Actual tyre compound used
   m_visualTyreCompound: number; // Visual tyre compound used

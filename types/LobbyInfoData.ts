@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface LobbyInfoData {
   m_aiControlled: number; // Whether the vehicle is AI (1) or Human (0) controlled
   m_teamId: number; // Team id - see appendix (255 if no team currently selected)

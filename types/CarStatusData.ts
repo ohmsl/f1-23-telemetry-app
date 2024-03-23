@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface CarStatusData {
   m_traction_control: number; // Traction control - 0 = off, 1 = medium, 2 = full
   m_anti_lock_brakes: number; // 0 (off) - 1 (on)

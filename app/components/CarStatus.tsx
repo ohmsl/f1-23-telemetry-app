@@ -1,0 +1,210 @@
+import { CarDamageData } from "@/types/CarDamageData";
+import { CarStatusData } from "@/types/CarStatusData";
+import { CarTelemetryData } from "@/types/CarTelemetryData";
+import { Box, Stack, Typography } from "@mui/material";
+import getTyreData from "../helpers/getTyreData";
+import Car from "./Car/Car";
+import StatStack from "./StatStack";
+
+type Props = {
+  carTelemetryData: CarTelemetryData | undefined;
+  carDamageData: CarDamageData | undefined;
+  carStatusData: CarStatusData | undefined;
+};
+
+const CarStatus = ({
+  carTelemetryData,
+  carDamageData,
+  carStatusData,
+}: Props) => {
+  return (
+    <Stack position="relative">
+      <Stack direction="row">
+        {!carTelemetryData && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 1,
+              width: "70%",
+              py: 2,
+              background:
+                "linear-gradient(90deg, transparent, #000, transparent)",
+              "@keyframes offline": {
+                "0%": {
+                  opacity: 1,
+                },
+                "50%": {
+                  opacity: 0.5,
+                },
+                "100%": {
+                  opacity: 1,
+                },
+              },
+            }}
+          >
+            <Typography
+              variant="h4"
+              align="center"
+              color="error"
+              sx={[
+                {
+                  textTransform: "uppercase",
+                  letterSpacing: 2,
+                  fontWeight: "bold",
+                  animation: "offline 2s infinite ease-in-out",
+                },
+              ]}
+            >
+              Offline
+            </Typography>
+          </Box>
+        )}
+        <Stack justifyContent="space-between">
+          <StatStack
+            title="FL TYRE"
+            stats={[
+              {
+                title: "Temp",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 0)
+                    .outerTemperature
+                } °C`,
+                color: "warning",
+              },
+              {
+                title: "Pressure",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 0).pressure
+                } PSI`,
+                color: "primary",
+              },
+            ]}
+            sx={{ mt: 10 }}
+          />
+          <StatStack
+            title="RL TYRE"
+            stats={[
+              {
+                title: "Temp",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 1)
+                    .outerTemperature
+                } °C`,
+                color: "warning",
+              },
+              {
+                title: "Pressure",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 1).pressure
+                } PSI`,
+                color: "primary",
+              },
+            ]}
+            sx={{ mb: 4 }}
+          />
+        </Stack>
+        <Stack spacing={2}>
+          <Car
+            carTelemetryData={carTelemetryData}
+            carDamageData={carDamageData}
+          />
+        </Stack>
+        <Stack justifyContent="space-between">
+          <StatStack
+            title="FR TYRE"
+            stats={[
+              {
+                title: "Temp",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 2)
+                    .outerTemperature
+                } °C`,
+                color: "warning",
+              },
+              {
+                title: "Pressure",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 2).pressure
+                } PSI`,
+                color: "primary",
+              },
+            ]}
+            align="right"
+            sx={{ mt: 10 }}
+          />
+          <StatStack
+            title="RR TYRE"
+            stats={[
+              {
+                title: "Temp",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 3)
+                    .outerTemperature
+                } °C`,
+                color: "warning",
+              },
+              {
+                title: "Pressure",
+                value: `${
+                  getTyreData(carTelemetryData, carDamageData, 3).pressure
+                } PSI`,
+                color: "primary",
+              },
+            ]}
+            align="right"
+            sx={{ mb: 4 }}
+          />
+        </Stack>
+      </Stack>
+      <Stack direction="row" spacing={2} justifyContent="space-between" mt={4}>
+        <StatStack
+          title="FUEL"
+          stats={[
+            {
+              title: "Fuel Remaining",
+              value: `${carStatusData?.m_fuel_in_tank.toFixed(1)} L`,
+              color: "primary",
+            },
+            {
+              title: "Laps Remaining",
+              value: `${carStatusData?.m_fuel_remaining_laps.toFixed(1)} laps`,
+              color: "primary",
+            },
+          ]}
+        />
+        <StatStack
+          title="BRAKES"
+          stats={[
+            {
+              title: "Avg Temp",
+              value: `${
+                carTelemetryData &&
+                (
+                  carTelemetryData?.m_brakesTemperature.reduce(
+                    (acc, curr) => acc + curr,
+                    0
+                  ) / carTelemetryData?.m_brakesTemperature.length
+                ).toFixed(0)
+              } °C`,
+              color: "warning",
+            },
+            {
+              title: "Max Temp",
+              value: `${
+                carTelemetryData &&
+                Math.max(...carTelemetryData?.m_brakesTemperature)
+              } °C`,
+              color: "warning",
+            },
+          ]}
+          align="right"
+        />
+      </Stack>
+    </Stack>
+  );
+};
+
+export default CarStatus;

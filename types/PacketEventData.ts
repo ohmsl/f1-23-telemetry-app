@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface Options {
   port?: number;
   address?: string;

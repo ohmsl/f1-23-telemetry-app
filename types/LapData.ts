@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface LapData {
   m_lastLapTimeInMS: number; // u32
   m_currentLapTimeInMS: number; // u32

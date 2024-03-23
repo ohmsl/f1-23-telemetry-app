@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface CarDamageData {
   m_tyres_wear: number[]; // Tyre wear (percentage)
   m_tyres_damage: number[]; // Tyre damage (percentage)

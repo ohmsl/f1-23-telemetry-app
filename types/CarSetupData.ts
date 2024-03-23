@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 /**
  * Represents the car setup data.
  */

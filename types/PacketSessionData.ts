@@ -1,4 +1,5 @@
 import { MarshalZone } from "./MarshalZone";
+import { PacketHeader } from "./PacketHeader";
 import { WeatherForecastSample } from "./WeatherForecastSample";
 
 export interface PacketSessionData {

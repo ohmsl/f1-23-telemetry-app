@@ -19,7 +19,7 @@ import { EventEmitter } from "events";
 const DEFAULT_PORT = 20777;
 const ADDRESS = "localhost";
 
-export class TelemetryClient extends EventEmitter {
+export class TelemetryServer extends EventEmitter {
   private socket: Socket;
 
   port: number;
@@ -1494,4 +1494,4 @@ export class TelemetryClient extends EventEmitter {
   }
 }
 
-export default TelemetryClient;
+export default TelemetryServer;

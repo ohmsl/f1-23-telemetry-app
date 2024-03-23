@@ -3,6 +3,8 @@ import "@fontsource/dm-sans";
 import "@fontsource/noto-sans";
 import { darkScrollbar } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
+import localFont from "next/font/local";
+
 declare module "@mui/material/styles" {
   interface SimplePaletteColorOptions {
     gradient?: string;
@@ -20,6 +22,10 @@ declare module "@mui/material/styles" {
     secondary: PaletteColor;
   }
 }
+
+const f1Font = localFont({
+  src: "../fonts/Formula1-Regular-1.ttf",
+});
 
 const theme = createTheme({
   palette: {
@@ -49,7 +55,7 @@ const theme = createTheme({
       gradient: "linear-gradient(145deg, #2cdb75, #1AAB4A)",
     },
     warning: {
-      main: "#b95e04",
+      main: "#f89a00",
       gradient: "linear-gradient(145deg, #FFBE7D, #FF7F00)",
     },
     info: {
@@ -65,7 +71,7 @@ const theme = createTheme({
     borderRadius: 16,
   },
   typography: {
-    fontFamily: "'Noto Sans', Arial, Helvetica, sans-serif",
+    fontFamily: f1Font.style.fontFamily,
     caption: {
       fontFamily: "'Poppins', Arial, Helvetica, sans-serif",
       fontWeight: 400,

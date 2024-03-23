@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface CarMotionData {
   m_worldPositionX: number; // f32
   m_worldPositionY: number; // f32

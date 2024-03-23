@@ -1,7 +1,7 @@
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
-import F1TelemetryClient from ".";
+import F1TelemetryServer from ".";
 
 const toJSON = (content: any) =>
   JSON.stringify(content, (key, value) =>
@@ -17,26 +17,38 @@ const io = new Server(httpServer, {
     origin: "*", // Adjust this according to your frontend's URL for production
   },
 });
-const TelemetryClient = new F1TelemetryClient();
+const TelemetryServer = new F1TelemetryServer();
 
-TelemetryClient.on("listening", () => {
-  const address = TelemetryClient.address;
+TelemetryServer.on("listening", () => {
+  const address = TelemetryServer.address;
   console.log(`UDP Server listening on ${address}`);
 });
 
-TelemetryClient.on("session", (data: PacketSessionData) => {
-  io.emit("sessionData", toJSON(data));
+TelemetryServer.on("session", (data: PacketSessionData) => {
+  io.emit("session", toJSON(data));
 });
 
-TelemetryClient.on("carTelemetry", (data) => {
+TelemetryServer.on("participants", (data) => {
+  io.emit("participants", toJSON(data));
+});
+
+TelemetryServer.on("carTelemetry", (data) => {
   io.emit("carTelemetry", toJSON(data));
 });
 
-TelemetryClient.on("error", (error: Error) => {
+TelemetryServer.on("carDamage", (data) => {
+  io.emit("carDamage", toJSON(data));
+});
+
+TelemetryServer.on("carStatus", (data) => {
+  io.emit("carStatus", toJSON(data));
+});
+
+TelemetryServer.on("error", (error: Error) => {
   console.error(error);
 });
 
-TelemetryClient.start();
+TelemetryServer.start();
 
 io.on("connection", (socket: Socket) => {
   console.log("A user connected");

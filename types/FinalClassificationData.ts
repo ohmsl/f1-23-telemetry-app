@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface FinalClassificationData {
   m_position: number; // Finishing position
   m_numLaps: number; // Number of laps completed

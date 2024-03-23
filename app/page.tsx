@@ -11,20 +11,22 @@ import {
   IconButton,
   LinearProgress,
   Paper,
+  Stack,
   Typography,
 } from "@mui/material";
 import {
-  BsCloudDrizzleFill,
   BsCloudLightningRainFill,
   BsCloudRainFill,
   BsCloudRainHeavyFill,
   BsCloudsFill,
   BsCloudyFill,
   BsFillQuestionCircleFill,
+  BsSunFill,
 } from "react-icons/bs";
 
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { useState } from "react";
+import CarStatus from "./components/CarStatus";
 import WeatherCard from "./components/WeatherCard";
 import { useTelemetry } from "./providers/telemetry/TelemetryProvider";
 
@@ -75,7 +77,7 @@ const parseWeatherForecast = (
   const chooseIcon = (weather: number) => {
     switch (weather) {
       case 0:
-        return <BsCloudDrizzleFill size={24} />;
+        return <BsSunFill size={24} />;
       case 1:
         return <BsCloudsFill size={24} />;
       case 2:
@@ -102,6 +104,7 @@ const parseWeatherForecast = (
 const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
   const mph = Math.round(speed * 0.621371);
   const normalizedSpeed = Math.min(100, Math.max(0, (mph / 250) * 100));
+  const normalizedRpm = Math.min(100, Math.max(0, (rpm / 15000) * 100));
 
   return (
     <Box
@@ -112,7 +115,7 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
     >
       <CircularProgress
         variant="determinate"
-        value={normalizedSpeed}
+        value={normalizedRpm}
         size={200}
         thickness={4}
         sx={{
@@ -124,6 +127,17 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
             "& .MuiCircularProgress-circle": {
               strokeLinecap: "round",
             },
+          },
+          "&:before": {
+            content: '""',
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            borderColor: (theme) => theme.palette.background.paper,
+            borderStyle: "solid",
+            borderWidth: 19,
+            zIndex: -1,
           },
         }}
       />
@@ -138,25 +152,24 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
         alignItems="center"
         justifyContent="center"
       >
-        <Typography variant="h4" fontFamily="f1Font">
-          {mph}
-        </Typography>
-        <Typography variant="subtitle2" fontFamily="f1Font">
-          MPH
-        </Typography>
-        <Typography variant="h6" fontFamily="f1Font">
-          {rpm}
-        </Typography>
-        <Typography variant="subtitle2" fontFamily="f1Font">
-          RPM
-        </Typography>
+        <Typography variant="h4">{mph}</Typography>
+        <Typography variant="subtitle2">MPH</Typography>
+        <Typography variant="h6">{rpm}</Typography>
+        <Typography variant="subtitle2">RPM</Typography>
       </Box>
     </Box>
   );
 };
 
 export default function Home() {
-  const { connected, sessionData, carTelemetryData } = useTelemetry();
+  const {
+    connected,
+    sessionData,
+    participantsData,
+    carTelemetryData,
+    carDamageData,
+    carStatusData,
+  } = useTelemetry();
   const [telemetryIndex, setTelemetryIndex] = useState<number>(0);
 
   return (
@@ -167,29 +180,8 @@ export default function Home() {
         color={connected ? "success" : "error"}
         icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
       />
-      <Grid container spacing={2} sx={{ p: 4 }}>
-        <Grid item>
-          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
-            <Typography variant="h6">Weather</Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              {parseWeatherForecast(
-                sessionData?.m_weatherForecastSamples,
-                sessionData?.m_sessionType
-              )?.map((weather, index) => (
-                <WeatherCard key={index} weather={weather} />
-              ))}
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item>
-          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
-            <Typography variant="h6">Session</Typography>
-            <Typography variant="body2">
-              {parseSessionType(sessionData?.m_sessionType)}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item>
+      <Stack spacing={2}>
+        <Stack direction="row" spacing={2}>
           <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
             <Box
               sx={{
@@ -234,14 +226,31 @@ export default function Home() {
                 }
               />
               <Divider flexItem sx={{ my: 1 }} />
-              <Chip
-                label="DRS"
-                color={
-                  carTelemetryData?.m_carTelemetryData[telemetryIndex]?.m_drs
-                    ? "success"
-                    : "default"
-                }
-              />
+              <Stack direction="row" spacing={1}>
+                <Chip
+                  label="DRS"
+                  color={
+                    carTelemetryData?.m_carTelemetryData[telemetryIndex]?.m_drs
+                      ? "success"
+                      : carStatusData?.m_car_status_data[telemetryIndex]
+                          .m_drs_allowed === 1
+                      ? "info"
+                      : "default"
+                  }
+                />
+                <Chip
+                  label="ERS"
+                  color={
+                    carStatusData?.m_car_status_data[telemetryIndex]
+                      .m_ers_deploy_mode === 1
+                      ? "success"
+                      : carStatusData?.m_car_status_data[telemetryIndex]
+                          .m_ers_deploy_mode === 2
+                      ? "warning"
+                      : "default"
+                  }
+                />
+              </Stack>
               <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
                 <Typography variant="h6">Gear</Typography>
                 <Typography variant="h5">
@@ -266,6 +275,65 @@ export default function Home() {
                 color="error"
               />
             </Paper>
+          </Paper>
+          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 1,
+              }}
+            >
+              <Typography variant="h6">Telemetry</Typography>
+              <div>
+                {`${telemetryIndex + 1} /
+                ${carTelemetryData?.m_carTelemetryData.length} - 
+                ${participantsData?.m_participants[telemetryIndex]?.m_name}`}
+                <IconButton
+                  onClick={() => setTelemetryIndex(telemetryIndex - 1)}
+                >
+                  <ChevronLeft />
+                </IconButton>
+                <IconButton
+                  onClick={() => setTelemetryIndex(telemetryIndex + 1)}
+                >
+                  <ChevronRight />
+                </IconButton>
+              </div>
+            </Box>
+            <CarStatus
+              carTelemetryData={
+                carTelemetryData?.m_carTelemetryData[telemetryIndex]
+              }
+              carDamageData={carDamageData?.m_car_damage_data[telemetryIndex]}
+              carStatusData={carStatusData?.m_car_status_data[telemetryIndex]}
+            />
+          </Paper>
+        </Stack>
+      </Stack>
+
+      <Grid container spacing={2} sx={{ p: 4 }}>
+        <Grid item>
+          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
+            <Typography variant="h6">Weather</Typography>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              {parseWeatherForecast(
+                sessionData?.m_weatherForecastSamples,
+                sessionData?.m_sessionType
+              )?.map((weather, index) => (
+                <WeatherCard key={index} weather={weather} />
+              ))}
+            </Box>
+          </Paper>
+        </Grid>
+        <Grid item>
+          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
+            <Typography variant="h6">Session</Typography>
+            <Typography variant="body2">
+              {parseSessionType(sessionData?.m_sessionType)}
+            </Typography>
           </Paper>
         </Grid>
       </Grid>
