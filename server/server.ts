@@ -20,11 +20,6 @@ const io = new Server(httpServer, {
 });
 const TelemetryServer = new F1TelemetryServer();
 
-TelemetryServer.on("listening", () => {
-  const address = TelemetryServer.address;
-  console.log(`UDP Server listening on ${address}`);
-});
-
 TelemetryServer.on("session", (data: PacketSessionData) => {
   io.emit("session", toJSON(data));
 });
@@ -34,8 +29,8 @@ TelemetryServer.on("participants", (data) => {
 });
 
 TelemetryServer.on("carTelemetry", (data) => {
-  store.storeTelemetry(data);
   io.emit("carTelemetry", toJSON(data));
+  store.storeTelemetry(data);
 });
 
 TelemetryServer.on("carDamage", (data) => {
@@ -58,7 +53,6 @@ setInterval(() => {
   console.log(data);
 }, 2000);
 
-
 io.on("connection", (socket: Socket) => {
   console.log("A user connected");
   socket.on("disconnect", () => {
@@ -71,4 +65,3 @@ httpServer.listen(WEBSOCKET_PORT, () => {
 });
 
 const store = new Store();
-
