@@ -166,7 +166,7 @@ export class TelemetryServer extends EventEmitter {
               });
 
             const data: PacketMotionData = PacketMotionDataParser.parse(msg);
-
+     
             this.emit("motion", data);
             break;
           }
@@ -268,7 +268,7 @@ export class TelemetryServer extends EventEmitter {
               .int8("m_airTemperature")
               .int8("m_airTemperatureChange")
               .uint8("m_rainPercentage");
-
+            
             const PacketSessionDataParser = new Parser()
               .endianess("little")
               .nest("m_header", { type: PacketHeaderParser })

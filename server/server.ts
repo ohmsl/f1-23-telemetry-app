@@ -2,6 +2,7 @@ import { PacketSessionData } from "@/types/PacketSessionData";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import F1TelemetryServer from ".";
+import { Store } from "./store";
 
 const toJSON = (content: any) =>
   JSON.stringify(content, (key, value) =>
@@ -33,6 +34,7 @@ TelemetryServer.on("participants", (data) => {
 });
 
 TelemetryServer.on("carTelemetry", (data) => {
+  store.storeTelemetry(data);
   io.emit("carTelemetry", toJSON(data));
 });
 
@@ -50,6 +52,13 @@ TelemetryServer.on("error", (error: Error) => {
 
 TelemetryServer.start();
 
+setInterval(() => {
+  const data = store.getSpeedForLast2Seconds();
+  io.emit("speed", toJSON(data));
+  console.log(data);
+}, 2000);
+
+
 io.on("connection", (socket: Socket) => {
   console.log("A user connected");
   socket.on("disconnect", () => {
@@ -60,3 +69,6 @@ io.on("connection", (socket: Socket) => {
 httpServer.listen(WEBSOCKET_PORT, () => {
   console.log(`WebSocket Server listening on *:${WEBSOCKET_PORT}`);
 });
+
+const store = new Store();
+

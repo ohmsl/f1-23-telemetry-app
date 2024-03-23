@@ -1,3 +1,5 @@
+import { PacketHeader } from "./PacketHeader";
+
 export interface ParticipantData {
   m_aiControlled: number; // Whether the vehicle is AI (1) or Human (0) controlled
   m_driverId: number; // Driver id - see appendix, 255 if network human
