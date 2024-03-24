@@ -6,6 +6,7 @@ import {
   Box,
   Chip,
   CircularProgress,
+  Container,
   Divider,
   IconButton,
   LinearProgress,
@@ -102,154 +103,160 @@ export default function Home() {
         color={connected ? "success" : "error"}
         icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
       />
-      <Stack spacing={2} width="100%" p={3}>
-        <BasicSessionInfo sessionData={sessionData} />
-        <Stack direction="row" spacing={2} width="100%">
-          <Paper
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              p: 2,
-              overflowX: "auto",
-              flex: 1,
-            }}
-            variant="outlined"
-          >
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 1,
-              }}
-            >
-              <Typography variant="h6">Telemetry</Typography>
-              <div>
-                <IconButton
-                  onClick={() => setTelemetryIndex(telemetryIndex - 1)}
-                >
-                  <ChevronLeft />
-                </IconButton>
-                <IconButton
-                  onClick={() => setTelemetryIndex(telemetryIndex + 1)}
-                >
-                  <ChevronRight />
-                </IconButton>
-              </div>
-            </Box>
+      <Container maxWidth="xl">
+        <Stack spacing={2} width="100%" p={3}>
+          <BasicSessionInfo sessionData={sessionData} />
+          <Stack direction="row" spacing={2} width="100%">
             <Paper
               sx={{
-                p: 2,
                 display: "flex",
                 flexDirection: "column",
-                gap: 1,
-                alignItems: "center",
+                p: 2,
+                overflowX: "auto",
                 flex: 1,
               }}
+              variant="outlined"
             >
-              <Speedometer
-                speed={
-                  carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                    ?.m_speed || 0 // carTelemetryData.m_header.player_car_index
-                }
-                rpm={
-                  carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                    ?.m_engineRPM || 0
-                }
-              />
-              <Divider flexItem sx={{ my: 1 }} />
-              <Stack direction="row" spacing={1}>
-                <Chip
-                  label="DRS"
-                  color={
-                    carTelemetryData?.m_carTelemetryData[telemetryIndex]?.m_drs
-                      ? "success"
-                      : carStatusData?.m_car_status_data[telemetryIndex]
-                          .m_drs_allowed === 1
-                      ? "info"
-                      : "default"
-                  }
-                />
-                <Chip
-                  label="ERS"
-                  color={
-                    carStatusData?.m_car_status_data[telemetryIndex]
-                      .m_ers_deploy_mode === 1
-                      ? "success"
-                      : carStatusData?.m_car_status_data[telemetryIndex]
-                          .m_ers_deploy_mode === 2
-                      ? "warning"
-                      : "default"
-                  }
-                />
-              </Stack>
-              <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
-                <Typography variant="h6">Gear</Typography>
-                <Typography variant="h5">
-                  {carTelemetryData?.m_carTelemetryData[telemetryIndex]?.m_gear}
-                </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography variant="h6">Telemetry</Typography>
+                <div>
+                  <IconButton
+                    onClick={() => setTelemetryIndex(telemetryIndex - 1)}
+                  >
+                    <ChevronLeft />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setTelemetryIndex(telemetryIndex + 1)}
+                  >
+                    <ChevronRight />
+                  </IconButton>
+                </div>
               </Box>
-              <LinearProgress
-                variant="determinate"
-                value={
-                  (carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                    ?.m_throttle || 0) * 100
-                }
-                sx={{ width: "100%", borderRadius: 2 }}
-              />
-              <LinearProgress
-                variant="determinate"
-                value={
-                  (carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                    ?.m_brake || 0) * 100
-                }
-                sx={{ width: "100%", borderRadius: 2 }}
-                color="error"
-              />
+              <Paper
+                sx={{
+                  p: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  alignItems: "center",
+                  flex: 1,
+                }}
+              >
+                <Speedometer
+                  speed={
+                    carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                      ?.m_speed || 0 // carTelemetryData.m_header.player_car_index
+                  }
+                  rpm={
+                    carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                      ?.m_engineRPM || 0
+                  }
+                />
+                <Divider flexItem sx={{ my: 1 }} />
+                <Stack direction="row" spacing={1}>
+                  <Chip
+                    label="DRS"
+                    color={
+                      carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                        ?.m_drs
+                        ? "success"
+                        : carStatusData?.m_car_status_data[telemetryIndex]
+                            .m_drs_allowed === 1
+                        ? "info"
+                        : "default"
+                    }
+                  />
+                  <Chip
+                    label="ERS"
+                    color={
+                      carStatusData?.m_car_status_data[telemetryIndex]
+                        .m_ers_deploy_mode === 1
+                        ? "success"
+                        : carStatusData?.m_car_status_data[telemetryIndex]
+                            .m_ers_deploy_mode === 2
+                        ? "warning"
+                        : "default"
+                    }
+                  />
+                </Stack>
+                <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+                  <Typography variant="h6">Gear</Typography>
+                  <Typography variant="h5">
+                    {
+                      carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                        ?.m_gear
+                    }
+                  </Typography>
+                </Box>
+                <LinearProgress
+                  variant="determinate"
+                  value={
+                    (carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                      ?.m_throttle || 0) * 100
+                  }
+                  sx={{ width: "100%", borderRadius: 2 }}
+                />
+                <LinearProgress
+                  variant="determinate"
+                  value={
+                    (carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                      ?.m_brake || 0) * 100
+                  }
+                  sx={{ width: "100%", borderRadius: 2 }}
+                  color="error"
+                />
+              </Paper>
             </Paper>
-          </Paper>
-          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
-            <Box
-              sx={{
-                display: "flex",
-                gap: 2,
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 1,
-              }}
-            >
-              <Typography variant="h6">Telemetry</Typography>
-              <div>
-                {`${telemetryIndex + 1} /
+            <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                }}
+              >
+                <Typography variant="h6">Telemetry</Typography>
+                <div>
+                  {`${telemetryIndex + 1} /
                 ${carTelemetryData?.m_carTelemetryData.length} - 
                 ${participantsData?.m_participants[telemetryIndex]?.m_name}`}
-                <IconButton
-                  onClick={() => setTelemetryIndex(telemetryIndex - 1)}
-                >
-                  <ChevronLeft />
-                </IconButton>
-                <IconButton
-                  onClick={() => setTelemetryIndex(telemetryIndex + 1)}
-                >
-                  <ChevronRight />
-                </IconButton>
-              </div>
-            </Box>
-            <CarStatus
-              carTelemetryData={
-                carTelemetryData?.m_carTelemetryData[telemetryIndex]
-              }
-              carDamageData={carDamageData?.m_car_damage_data[telemetryIndex]}
-              carStatusData={carStatusData?.m_car_status_data[telemetryIndex]}
+                  <IconButton
+                    onClick={() => setTelemetryIndex(telemetryIndex - 1)}
+                  >
+                    <ChevronLeft />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setTelemetryIndex(telemetryIndex + 1)}
+                  >
+                    <ChevronRight />
+                  </IconButton>
+                </div>
+              </Box>
+              <CarStatus
+                carTelemetryData={
+                  carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                }
+                carDamageData={carDamageData?.m_car_damage_data[telemetryIndex]}
+                carStatusData={carStatusData?.m_car_status_data[telemetryIndex]}
+              />
+            </Paper>
+            <LapTiming
+              lapData={lapData?.m_lapData[telemetryIndex]}
+              sessionData={sessionData}
             />
-          </Paper>
-          <LapTiming
-            lapData={lapData?.m_lapData[telemetryIndex]}
-            sessionData={sessionData}
-          />
+          </Stack>
         </Stack>
-      </Stack>
+      </Container>
     </>
   );
 }
