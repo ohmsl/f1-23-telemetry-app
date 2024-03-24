@@ -1,4 +1,4 @@
-const getTrack = (trackId: number) => {
+const parseTrackId = (trackId: number) => {
   switch (trackId) {
     case 0:
       return "Melbourne";
@@ -67,8 +67,8 @@ const getTrack = (trackId: number) => {
     case 32:
       return "Losail";
     default:
-      return "Unknown";
+      return "Unavailable";
   }
 };
 
-export default getTrack;
+export default parseTrackId;

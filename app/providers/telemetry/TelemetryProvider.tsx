@@ -2,6 +2,7 @@
 import { PacketCarDamageData } from "@/types/CarDamageData";
 import { PacketCarStatusData } from "@/types/CarStatusData";
 import { PacketCarTelemetryData } from "@/types/CarTelemetryData";
+import { PacketLapData } from "@/types/LapData";
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { PacketParticipantsData } from "@/types/ParticipantData";
 import React, {
@@ -15,11 +16,12 @@ import io, { Socket } from "socket.io-client";
 
 interface TelemetryContextType {
   connected: boolean;
-  sessionData?: PacketSessionData;
-  participantsData?: PacketParticipantsData;
-  carTelemetryData?: PacketCarTelemetryData;
-  carDamageData?: PacketCarDamageData;
-  carStatusData?: PacketCarStatusData;
+  sessionData: PacketSessionData | undefined;
+  participantsData: PacketParticipantsData | undefined;
+  carTelemetryData: PacketCarTelemetryData | undefined;
+  carDamageData: PacketCarDamageData | undefined;
+  carStatusData: PacketCarStatusData | undefined;
+  lapData: PacketLapData | undefined;
 }
 
 const TelemetryContext = createContext<TelemetryContextType | undefined>(
@@ -46,10 +48,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<PacketCarTelemetryData>();
   const [carDamageData, setCarDamageData] = useState<PacketCarDamageData>();
   const [carStatusData, setCarStatusData] = useState<PacketCarStatusData>();
-
-  useEffect(() => {
-    console.log(participantsData);
-  }, [participantsData]);
+  const [lapData, setLapData] = useState<PacketLapData>();
 
   useEffect(() => {
     console.log("Connecting to WebSocket server");
@@ -90,6 +89,11 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       setCarStatusData(parsedData);
     });
 
+    socket.current.on("lapData", (data) => {
+      const parsedData = JSON.parse(data) as PacketLapData;
+      setLapData(parsedData);
+    });
+
     return () => {
       if (socket.current) socket.current.disconnect();
     };
@@ -104,6 +108,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         carTelemetryData,
         carDamageData,
         carStatusData,
+        lapData,
       }}
     >
       {children}

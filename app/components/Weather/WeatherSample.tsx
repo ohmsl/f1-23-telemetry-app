@@ -1,13 +1,13 @@
 import { WeatherForecastSample } from "@/types/WeatherForecastSample";
 import { Paper, Typography } from "@mui/material";
 
-type WeatherCardProps = {
+type WeatherSampleProps = {
   weather: WeatherForecastSample & {
     icon: JSX.Element;
   };
 };
 
-const WeatherCard = ({ weather }: WeatherCardProps) => {
+const WeatherSample = ({ weather }: WeatherSampleProps) => {
   const isNow = weather.m_timeOffset === 0;
   return (
     <Paper
@@ -32,4 +32,4 @@ const WeatherCard = ({ weather }: WeatherCardProps) => {
   );
 };
 
-export default WeatherCard;
+export default WeatherSample;

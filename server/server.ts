@@ -40,6 +40,10 @@ TelemetryServer.on("carStatus", (data) => {
   io.emit("carStatus", toJSON(data));
 });
 
+TelemetryServer.on("lapData", (data) => {
+  io.emit("lapData", toJSON(data));
+});
+
 TelemetryServer.on("error", (error: Error) => {
   console.error(error);
 });

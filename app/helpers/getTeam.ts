@@ -168,7 +168,7 @@ const getTeam = (teamId: number) => {
     case 140:
       return "Art GP ‘22";
     default:
-      return "Unknown";
+      return "Unavailable";
   }
 };
 

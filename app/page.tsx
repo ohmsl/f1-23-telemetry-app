@@ -1,5 +1,5 @@
 "use client";
-import { WeatherForecastSample } from "@/types/WeatherForecastSample";
+import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
@@ -7,99 +7,20 @@ import {
   Chip,
   CircularProgress,
   Divider,
-  Grid,
   IconButton,
   LinearProgress,
   Paper,
   Stack,
   Typography,
 } from "@mui/material";
-import {
-  BsCloudLightningRainFill,
-  BsCloudRainFill,
-  BsCloudRainHeavyFill,
-  BsCloudsFill,
-  BsCloudyFill,
-  BsFillQuestionCircleFill,
-  BsSunFill,
-} from "react-icons/bs";
-
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
 import { useState } from "react";
+import BasicSessionInfo from "./components/BasicSessionInfo";
 import CarStatus from "./components/CarStatus";
-import WeatherCard from "./components/WeatherCard";
+import LapTiming from "./components/LapTiming";
 import { useTelemetry } from "./providers/telemetry/TelemetryProvider";
-
-const parseSessionType = (sessionType: number | undefined) => {
-  switch (sessionType) {
-    case 0:
-      return "Unknown";
-    case 1:
-      return "P1";
-    case 2:
-      return "P2";
-    case 3:
-      return "P3";
-    case 4:
-      return "Short Practice";
-    case 5:
-      return "Q1";
-    case 6:
-      return "Q2";
-    case 7:
-      return "Q3";
-    case 8:
-      return "Short Qualifying";
-    case 9:
-      return "One Shot Qualifying";
-    case 10:
-      return "Race";
-    case 11:
-      return "Race 2";
-    case 12:
-      return "Race 3";
-    case 13:
-      return "Time Trial";
-    default:
-      return "Unknown";
-  }
-};
-
-const parseWeatherForecast = (
-  forecast: Array<WeatherForecastSample> | undefined,
-  sessionType?: number
-) => {
-  forecast = forecast?.filter(
-    (sample) =>
-      sample.m_sessionType !== 0 && sample.m_sessionType === sessionType
-  );
-
-  const chooseIcon = (weather: number) => {
-    switch (weather) {
-      case 0:
-        return <BsSunFill size={24} />;
-      case 1:
-        return <BsCloudsFill size={24} />;
-      case 2:
-        return <BsCloudyFill size={24} />;
-      case 3:
-        return <BsCloudRainFill size={24} />;
-      case 4:
-        return <BsCloudRainHeavyFill size={24} />;
-      case 5:
-        return <BsCloudLightningRainFill size={24} />;
-      default:
-        return <BsFillQuestionCircleFill size={24} />;
-    }
-  };
-
-  return forecast?.map((sample) => {
-    return {
-      icon: chooseIcon(sample.m_weather),
-      ...sample,
-    };
-  });
-};
+dayjs.extend(duration);
 
 const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
   const mph = Math.round(speed * 0.621371);
@@ -169,6 +90,7 @@ export default function Home() {
     carTelemetryData,
     carDamageData,
     carStatusData,
+    lapData,
   } = useTelemetry();
   const [telemetryIndex, setTelemetryIndex] = useState<number>(0);
 
@@ -180,9 +102,19 @@ export default function Home() {
         color={connected ? "success" : "error"}
         icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
       />
-      <Stack spacing={2}>
-        <Stack direction="row" spacing={2}>
-          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
+      <Stack spacing={2} width="100%" p={3}>
+        <BasicSessionInfo sessionData={sessionData} />
+        <Stack direction="row" spacing={2} width="100%">
+          <Paper
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              p: 2,
+              overflowX: "auto",
+              flex: 1,
+            }}
+            variant="outlined"
+          >
             <Box
               sx={{
                 display: "flex",
@@ -213,6 +145,7 @@ export default function Home() {
                 flexDirection: "column",
                 gap: 1,
                 alignItems: "center",
+                flex: 1,
               }}
             >
               <Speedometer
@@ -311,32 +244,12 @@ export default function Home() {
               carStatusData={carStatusData?.m_car_status_data[telemetryIndex]}
             />
           </Paper>
+          <LapTiming
+            lapData={lapData?.m_lapData[telemetryIndex]}
+            sessionData={sessionData}
+          />
         </Stack>
       </Stack>
-
-      <Grid container spacing={2} sx={{ p: 4 }}>
-        <Grid item>
-          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
-            <Typography variant="h6">Weather</Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              {parseWeatherForecast(
-                sessionData?.m_weatherForecastSamples,
-                sessionData?.m_sessionType
-              )?.map((weather, index) => (
-                <WeatherCard key={index} weather={weather} />
-              ))}
-            </Box>
-          </Paper>
-        </Grid>
-        <Grid item>
-          <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
-            <Typography variant="h6">Session</Typography>
-            <Typography variant="body2">
-              {parseSessionType(sessionData?.m_sessionType)}
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
     </>
   );
 }

@@ -19,6 +19,7 @@
     "@types/react-icons": "^3.0.0",
     "binary-parser": "^2.2.1",
     "concurrently": "^8.2.2",
+    "dayjs": "^1.11.10",
     "dgram": "^1.0.1",
     "next": "14.1.4",
     "react": "^18",
