@@ -1,5 +1,5 @@
 "use client";
-import theme from "@/theme/mainTheme";
+import theme from "@/theme/theme";
 import {
   Box,
   CssBaseline,

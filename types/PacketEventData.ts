@@ -64,21 +64,22 @@ export interface OvertakeData {
   beingOvertakenVehicleIdx: number;
 }
 
+export type EventDetails =
+  | FastestLapData
+  | RetirementData
+  | TeamMateInPitsData
+  | RaceWinnerData
+  | PenaltyData
+  | SpeedTrapData
+  | StartLightsData
+  | DriveThroughPenaltyServedData
+  | StopGoPenaltyServedData
+  | FlashbackData
+  | ButtonsData
+  | OvertakeData;
+
 export interface PacketEventData {
   m_header: PacketHeader;
   m_eventStringCode: string;
-
-  m_eventDetails:
-    | FastestLapData
-    | RetirementData
-    | TeamMateInPitsData
-    | RaceWinnerData
-    | PenaltyData
-    | SpeedTrapData
-    | StartLightsData
-    | DriveThroughPenaltyServedData
-    | StopGoPenaltyServedData
-    | FlashbackData
-    | ButtonsData
-    | OvertakeData;
+  m_eventDetails: EventDetails;
 }

@@ -92,7 +92,7 @@ const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderBottom: 0,
+          borderColor: "rgba(255, 255, 255, 0.12)",
         },
       },
     },
@@ -108,7 +108,7 @@ const theme = createTheme({
             overflowX: "hidden",
             backgroundColor: theme.palette.background.default,
             background: theme.palette.background.defaultGradient,
-            body: theme.palette.mode === "dark" ? darkScrollbar() : null,
+            body: darkScrollbar(),
           },
           a: {
             fontWeight: 600,

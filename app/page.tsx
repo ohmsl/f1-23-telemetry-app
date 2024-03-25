@@ -4,6 +4,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
   Box,
+  Button,
   Chip,
   CircularProgress,
   Container,
@@ -20,6 +21,8 @@ import { useState } from "react";
 import BasicSessionInfo from "./components/BasicSessionInfo";
 import CarStatus from "./components/CarStatus";
 import LapTiming from "./components/LapTiming";
+import TyreWearIndicator from "./components/TyreWearIndicator";
+import { Tyre } from "./helpers/getTyreData";
 import { useTelemetry } from "./providers/telemetry/TelemetryProvider";
 dayjs.extend(duration);
 
@@ -83,6 +86,9 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
   );
 };
 
+let startTime = dayjs().valueOf();
+let renderCount = 0;
+
 export default function Home() {
   const {
     connected,
@@ -95,6 +101,8 @@ export default function Home() {
   } = useTelemetry();
   const [telemetryIndex, setTelemetryIndex] = useState<number>(0);
 
+  renderCount++;
+
   return (
     <>
       <Chip
@@ -103,6 +111,34 @@ export default function Home() {
         color={connected ? "success" : "error"}
         icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
       />
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          m: 2,
+          display: "flex",
+          gap: 1,
+        }}
+      >
+        <Button
+          variant="contained"
+          onClick={() => {
+            startTime = dayjs().valueOf();
+            renderCount = 0;
+          }}
+        >
+          Reset
+        </Button>
+        <Typography variant="caption">
+          {`Render count: ${renderCount}`}
+          <br />
+          {`Render frequency: ${(
+            (renderCount / (dayjs().valueOf() - startTime)) *
+            1000
+          ).toFixed(0)} Hz`}
+        </Typography>
+      </Box>
       <Container maxWidth="xl">
         <Stack spacing={2} width="100%" p={3}>
           <BasicSessionInfo sessionData={sessionData} />
@@ -117,29 +153,6 @@ export default function Home() {
               }}
               variant="outlined"
             >
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 1,
-                }}
-              >
-                <Typography variant="h6">Telemetry</Typography>
-                <div>
-                  <IconButton
-                    onClick={() => setTelemetryIndex(telemetryIndex - 1)}
-                  >
-                    <ChevronLeft />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => setTelemetryIndex(telemetryIndex + 1)}
-                  >
-                    <ChevronRight />
-                  </IconButton>
-                </div>
-              </Box>
               <Paper
                 sx={{
                   p: 2,
@@ -147,13 +160,13 @@ export default function Home() {
                   flexDirection: "column",
                   gap: 1,
                   alignItems: "center",
-                  flex: 1,
+                  height: "100%",
                 }}
               >
                 <Speedometer
                   speed={
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                      ?.m_speed || 0 // carTelemetryData.m_header.player_car_index
+                      ?.m_speed || 100 // carTelemetryData.m_header.player_car_index
                   }
                   rpm={
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]
@@ -202,7 +215,11 @@ export default function Home() {
                     (carTelemetryData?.m_carTelemetryData[telemetryIndex]
                       ?.m_throttle || 0) * 100
                   }
-                  sx={{ width: "100%", borderRadius: 2 }}
+                  sx={{
+                    width: "100%",
+                    borderRadius: 2,
+                    height: 12,
+                  }}
                 />
                 <LinearProgress
                   variant="determinate"
@@ -210,9 +227,41 @@ export default function Home() {
                     (carTelemetryData?.m_carTelemetryData[telemetryIndex]
                       ?.m_brake || 0) * 100
                   }
-                  sx={{ width: "100%", borderRadius: 2 }}
+                  sx={{ width: "100%", borderRadius: 2, height: 12 }}
                   color="error"
                 />
+                <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                  <TyreWearIndicator
+                    value={
+                      carDamageData?.m_car_damage_data[telemetryIndex]
+                        .m_tyres_wear[Tyre.FrontLeft] || 0
+                    }
+                    color="primary"
+                  />
+                  <TyreWearIndicator
+                    value={
+                      carDamageData?.m_car_damage_data[telemetryIndex]
+                        .m_tyres_wear[Tyre.FrontRight] || 0
+                    }
+                    color="primary"
+                  />
+                </Stack>
+                <Stack direction="row" spacing={1}>
+                  <TyreWearIndicator
+                    value={
+                      carDamageData?.m_car_damage_data[telemetryIndex]
+                        .m_tyres_wear[Tyre.RearLeft] || 0
+                    }
+                    color="primary"
+                  />
+                  <TyreWearIndicator
+                    value={
+                      carDamageData?.m_car_damage_data[telemetryIndex]
+                        .m_tyres_wear[Tyre.RearRight] || 0
+                    }
+                    color="primary"
+                  />
+                </Stack>
               </Paper>
             </Paper>
             <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
@@ -228,15 +277,29 @@ export default function Home() {
                 <Typography variant="h6">Telemetry</Typography>
                 <div>
                   {`${telemetryIndex + 1} /
-                ${carTelemetryData?.m_carTelemetryData.length} - 
-                ${participantsData?.m_participants[telemetryIndex]?.m_name}`}
+                ${carTelemetryData?.m_carTelemetryData.length || 1} - 
+                ${
+                  participantsData?.m_participants[telemetryIndex]?.m_name ||
+                  "Unavailable"
+                }`}
                   <IconButton
-                    onClick={() => setTelemetryIndex(telemetryIndex - 1)}
+                    onClick={() => {
+                      if (telemetryIndex > 0) {
+                        setTelemetryIndex(telemetryIndex - 1);
+                      }
+                    }}
                   >
                     <ChevronLeft />
                   </IconButton>
                   <IconButton
-                    onClick={() => setTelemetryIndex(telemetryIndex + 1)}
+                    onClick={() => {
+                      if (
+                        telemetryIndex <
+                        (carTelemetryData?.m_carTelemetryData.length || 1) - 1
+                      ) {
+                        setTelemetryIndex(telemetryIndex + 1);
+                      }
+                    }}
                   >
                     <ChevronRight />
                   </IconButton>

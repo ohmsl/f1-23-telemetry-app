@@ -44,6 +44,10 @@ TelemetryServer.on("lapData", (data) => {
   io.emit("lapData", toJSON(data));
 });
 
+TelemetryServer.on("event", (data) => {
+  io.emit("event", toJSON(data));
+});
+
 TelemetryServer.on("error", (error: Error) => {
   console.error(error);
 });

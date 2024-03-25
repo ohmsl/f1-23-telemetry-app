@@ -38,7 +38,10 @@ export class TelemetryServer extends EventEmitter {
     if (!this.socket) {
       this.socket = createSocket("udp4");
     }
-    this.socket.bind({ port: this.port, address: this.address });
+    this.socket.bind({
+      port: this.port,
+      address: this.address,
+    });
     this.socket.on("listening", (): void => {
       this.socket.on("message", (msg: Buffer, rinfo: RemoteInfo): void => {
         const PACKET_SIZES = {
@@ -166,7 +169,7 @@ export class TelemetryServer extends EventEmitter {
               });
 
             const data: PacketMotionData = PacketMotionDataParser.parse(msg);
-     
+
             this.emit("motion", data);
             break;
           }
@@ -268,7 +271,7 @@ export class TelemetryServer extends EventEmitter {
               .int8("m_airTemperature")
               .int8("m_airTemperatureChange")
               .uint8("m_rainPercentage");
-            
+
             const PacketSessionDataParser = new Parser()
               .endianess("little")
               .nest("m_header", { type: PacketHeaderParser })
@@ -724,6 +727,18 @@ export class TelemetryServer extends EventEmitter {
                 .nest("m_header", { type: PacketHeaderParser })
                 .string("m_eventStringCode", { length: 4 })
                 .nest("m_eventDetails", { type: OvertakeDataParser })
+                .parse(msg);
+            } else if (EventStringCode === "SSTA") {
+              data = new Parser()
+                .endianess("little")
+                .nest("m_header", { type: PacketHeaderParser })
+                .string("m_eventStringCode", { length: 4 })
+                .parse(msg);
+            } else if (EventStringCode === "SEND") {
+              data = new Parser()
+                .endianess("little")
+                .nest("m_header", { type: PacketHeaderParser })
+                .string("m_eventStringCode", { length: 4 })
                 .parse(msg);
             } else {
               console.log("Unknown event string code: ", EventStringCode);
