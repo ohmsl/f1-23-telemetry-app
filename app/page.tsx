@@ -4,7 +4,6 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
   Box,
-  Button,
   Chip,
   CircularProgress,
   Container,
@@ -86,9 +85,6 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
   );
 };
 
-let startTime = dayjs().valueOf();
-let renderCount = 0;
-
 export default function Home() {
   const {
     connected,
@@ -101,47 +97,14 @@ export default function Home() {
   } = useTelemetry();
   const [telemetryIndex, setTelemetryIndex] = useState<number>(0);
 
-  renderCount++;
-
   return (
     <>
-      <LinearProgress
-        sx={{ position: "fixed", top: 0, left: 0, right: 0, height: "70px" }}
-      />
       <Chip
         sx={{ position: "fixed", top: 0, right: 0, m: 2, boxShadow: 8 }}
         label={connected ? "Connected" : "Disconnected"}
         color={connected ? "success" : "error"}
         icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
       />
-      <Box
-        sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          m: 2,
-          display: "flex",
-          gap: 1,
-        }}
-      >
-        <Button
-          variant="contained"
-          onClick={() => {
-            startTime = dayjs().valueOf();
-            renderCount = 0;
-          }}
-        >
-          Reset
-        </Button>
-        <Typography variant="caption">
-          {`Render count: ${renderCount}`}
-          <br />
-          {`Render frequency: ${(
-            (renderCount / (dayjs().valueOf() - startTime)) *
-            1000
-          ).toFixed(0)} Hz`}
-        </Typography>
-      </Box>
       <Container maxWidth="xl">
         <Stack spacing={2} width="100%" p={3}>
           <BasicSessionInfo sessionData={sessionData} />
