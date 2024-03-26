@@ -105,6 +105,9 @@ export default function Home() {
 
   return (
     <>
+      <LinearProgress
+        sx={{ position: "fixed", top: 0, left: 0, right: 0, height: "70px" }}
+      />
       <Chip
         sx={{ position: "fixed", top: 0, right: 0, m: 2, boxShadow: 8 }}
         label={connected ? "Connected" : "Disconnected"}
@@ -166,7 +169,7 @@ export default function Home() {
                 <Speedometer
                   speed={
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                      ?.m_speed || 100 // carTelemetryData.m_header.player_car_index
+                      ?.m_speed || 0 // carTelemetryData.m_header.player_car_index
                   }
                   rpm={
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]

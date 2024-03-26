@@ -6,7 +6,6 @@ import { PacketLapData } from "@/types/LapData";
 import { PacketEventData } from "@/types/PacketEventData";
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { PacketParticipantsData } from "@/types/ParticipantData";
-import throttle from "lodash.throttle";
 import React, {
   createContext,
   useContext,
@@ -52,6 +51,9 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   const [sessionData, setSessionData] = useState<PacketSessionData>();
 
   useEffect(() => {
+    jsonParserWorker.current = new Worker(
+      new URL("../../workers/jsonParser.worker.ts", import.meta.url)
+    );
     if (!sessionData) return;
     console.log(`
       Session packet arrived!
@@ -75,64 +77,17 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const eventsThisSession = useRef<Array<PacketEventData>>([]);
 
-  const throttledSetSessionData = useRef(
-    throttle((data: PacketSessionData) => {
-      setSessionData(data);
-    }, 1000)
-  );
-
-  const throttledSetEventsThisSession = useRef(
-    throttle((data: Array<PacketEventData>) => {
-      eventsThisSession.current = data;
-    }, 3000)
-  );
+  const dataBuffer = useRef<{
+    session?: PacketSessionData;
+    participants?: PacketParticipantsData;
+    carTelemetry?: PacketCarTelemetryData;
+    carDamage?: PacketCarDamageData;
+    carStatus?: PacketCarStatusData;
+    lapData?: PacketLapData;
+    event?: PacketEventData;
+  }>({});
 
   useEffect(() => {
-    jsonParserWorker.current = new Worker(
-      new URL("../../workers/jsonParser.worker.ts", import.meta.url),
-      { type: "module" }
-    );
-
-    jsonParserWorker.current.onmessage = (e) => {
-      if (e.data.error) {
-        console.error("JSON parsing error in worker:", e.data.error);
-      } else {
-        const buffer = e.data;
-        if (!buffer) return;
-
-        if (buffer.session) {
-          throttledSetSessionData.current(buffer.session);
-        }
-
-        if (buffer.participants) {
-          setParticipantsData(buffer.participants);
-        }
-
-        if (buffer.carTelemetry) {
-          setCarTelemetryData(buffer.carTelemetry);
-        }
-
-        if (buffer.carDamage) {
-          setCarDamageData(buffer.carDamage);
-        }
-
-        if (buffer.carStatus) {
-          setCarStatusData(buffer.carStatus);
-        }
-
-        if (buffer.lapData) {
-          setLapData(buffer.lapData);
-        }
-
-        if (buffer.event) {
-          throttledSetEventsThisSession.current([
-            ...eventsThisSession.current,
-            buffer.event,
-          ]);
-        }
-      }
-    };
-
     console.log("Connecting to WebSocket server");
     socket.current = io("http://localhost:3001");
 
@@ -146,32 +101,69 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       setConnected(false);
     });
 
+    const checkAndSetDataIfComplete = () => {
+      const requiredTypes = ["carTelemetry", "carStatus", "lapData"];
+
+      if (requiredTypes.every((type) => type in dataBuffer.current)) {
+        setCarTelemetryData(dataBuffer.current.carTelemetry);
+        setCarStatusData(dataBuffer.current.carStatus);
+        setLapData(dataBuffer.current.lapData);
+
+        // Update other states as necessary
+
+        if (dataBuffer.current.event) {
+          eventsThisSession.current.push(dataBuffer.current.event);
+        }
+
+        if (dataBuffer.current.session) {
+          setSessionData(dataBuffer.current.session);
+        }
+
+        if (dataBuffer.current.participants) {
+          setParticipantsData(dataBuffer.current.participants);
+        }
+
+        if (dataBuffer.current.carDamage) {
+          setCarDamageData(dataBuffer.current.carDamage);
+        }
+
+        dataBuffer.current = {};
+      }
+    };
+
     socket.current.on("session", (data) => {
-      jsonParserWorker.current?.postMessage({ type: "session", data });
+      dataBuffer.current.session = JSON.parse(data);
+      checkAndSetDataIfComplete();
     });
 
     socket.current.on("participants", (data) => {
-      jsonParserWorker.current?.postMessage({ type: "participants", data });
+      dataBuffer.current.participants = JSON.parse(data);
+      checkAndSetDataIfComplete();
     });
 
     socket.current.on("carTelemetry", (data) => {
-      jsonParserWorker.current?.postMessage({ type: "carTelemetry", data });
+      dataBuffer.current.carTelemetry = JSON.parse(data);
+      checkAndSetDataIfComplete();
     });
 
     socket.current.on("carDamage", (data) => {
-      jsonParserWorker.current?.postMessage({ type: "carDamage", data });
+      dataBuffer.current.carDamage = JSON.parse(data);
+      checkAndSetDataIfComplete();
     });
 
     socket.current.on("carStatus", (data) => {
-      jsonParserWorker.current?.postMessage({ type: "carStatus", data });
+      dataBuffer.current.carStatus = JSON.parse(data);
+      checkAndSetDataIfComplete();
     });
 
     socket.current.on("lapData", (data) => {
-      jsonParserWorker.current?.postMessage({ type: "lapData", data });
+      dataBuffer.current.lapData = JSON.parse(data);
+      checkAndSetDataIfComplete();
     });
 
     socket.current.on("event", (data) => {
-      jsonParserWorker.current?.postMessage({ type: "event", data });
+      dataBuffer.current.event = JSON.parse(data);
+      checkAndSetDataIfComplete();
     });
 
     return () => {
