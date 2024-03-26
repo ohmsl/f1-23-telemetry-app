@@ -2,9 +2,11 @@
 import { PacketCarDamageData } from "@/types/CarDamageData";
 import { PacketCarStatusData } from "@/types/CarStatusData";
 import { PacketCarTelemetryData } from "@/types/CarTelemetryData";
+import { PacketFinalClassificationData } from "@/types/FinalClassificationData";
 import { PacketLapData } from "@/types/LapData";
 import { PacketEventData } from "@/types/PacketEventData";
 import { PacketSessionData } from "@/types/PacketSessionData";
+import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
 import { PacketParticipantsData } from "@/types/ParticipantData";
 import React, {
   createContext,
@@ -14,15 +16,18 @@ import React, {
   useState,
 } from "react";
 import io, { Socket } from "socket.io-client";
+import { useNotifications } from "../NotificationProvider";
 
 interface TelemetryContextType {
   connected: boolean;
   sessionData: PacketSessionData | undefined;
+  sessionHistoryData: PacketSessionHistoryData | undefined;
   participantsData: PacketParticipantsData | undefined;
   carTelemetryData: PacketCarTelemetryData | undefined;
   carDamageData: PacketCarDamageData | undefined;
   carStatusData: PacketCarStatusData | undefined;
   lapData: PacketLapData | undefined;
+  finalClassificationData: PacketFinalClassificationData | undefined;
   eventsThisSession: Array<PacketEventData>;
 }
 
@@ -38,34 +43,18 @@ export const useTelemetry = () => {
   return context;
 };
 
-let lastSessionDataTime = 0;
-let slowPackets = 0;
-
 export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const socket = useRef<Socket | null>(null);
-  const jsonParserWorker = useRef<Worker>();
+  // const jsonParserWorker = useRef<Worker>();
+
+  const { postNotification } = useNotifications();
 
   const [connected, setConnected] = useState<boolean>(false);
   const [sessionData, setSessionData] = useState<PacketSessionData>();
-
-  useEffect(() => {
-    jsonParserWorker.current = new Worker(
-      new URL("../../workers/jsonParser.worker.ts", import.meta.url)
-    );
-    if (!sessionData) return;
-    console.log(`
-      Session packet arrived!
-      Time since last session packet: ${Date.now() - lastSessionDataTime}ms
-      ${
-        Date.now() - lastSessionDataTime > 1000
-          ? `Slow packets: ${++slowPackets}`
-          : `Slow packets: ${slowPackets}`
-      }
-    `);
-    lastSessionDataTime = Date.now();
-  }, [sessionData]);
+  const [sessionHistoryData, setSessionHistoryData] =
+    useState<PacketSessionHistoryData>();
 
   const [participantsData, setParticipantsData] =
     useState<PacketParticipantsData>();
@@ -77,14 +66,20 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const eventsThisSession = useRef<Array<PacketEventData>>([]);
 
+  const [finalClassificationData, setFinalClassificationData] = useState<
+    PacketFinalClassificationData | undefined
+  >(undefined);
+
   const dataBuffer = useRef<{
     session?: PacketSessionData;
+    sessionHistory?: PacketSessionHistoryData;
     participants?: PacketParticipantsData;
     carTelemetry?: PacketCarTelemetryData;
     carDamage?: PacketCarDamageData;
     carStatus?: PacketCarStatusData;
     lapData?: PacketLapData;
     event?: PacketEventData;
+    finalClassification?: PacketFinalClassificationData;
   }>({});
 
   useEffect(() => {
@@ -111,12 +106,12 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Update other states as necessary
 
-        if (dataBuffer.current.event) {
-          eventsThisSession.current.push(dataBuffer.current.event);
-        }
-
         if (dataBuffer.current.session) {
           setSessionData(dataBuffer.current.session);
+        }
+
+        if (dataBuffer.current.sessionHistory) {
+          setSessionHistoryData(dataBuffer.current.sessionHistory);
         }
 
         if (dataBuffer.current.participants) {
@@ -127,12 +122,25 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
           setCarDamageData(dataBuffer.current.carDamage);
         }
 
+        if (dataBuffer.current.finalClassification) {
+          setFinalClassificationData(dataBuffer.current.finalClassification);
+        }
+
+        if (dataBuffer.current.event) {
+          eventsThisSession.current.push(dataBuffer.current.event);
+        }
+
         dataBuffer.current = {};
       }
     };
 
     socket.current.on("session", (data) => {
       dataBuffer.current.session = JSON.parse(data);
+      checkAndSetDataIfComplete();
+    });
+
+    socket.current.on("sessionHistory", (data) => {
+      dataBuffer.current.sessionHistory = JSON.parse(data);
       checkAndSetDataIfComplete();
     });
 
@@ -166,21 +174,41 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       checkAndSetDataIfComplete();
     });
 
+    socket.current.on("finalClassification", (data) => {
+      dataBuffer.current.finalClassification = JSON.parse(data);
+      checkAndSetDataIfComplete();
+    });
+
     return () => {
       if (socket.current) socket.current.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    if (finalClassificationData) {
+      postNotification({
+        message: "Race results are in!",
+        timestamp: Date.now(),
+        action: {
+          label: "View",
+          onClick: () => {},
+        },
+      });
+    }
+  }, [finalClassificationData, postNotification]);
 
   return (
     <TelemetryContext.Provider
       value={{
         connected,
         sessionData,
+        sessionHistoryData,
         participantsData,
         carTelemetryData,
         carDamageData,
         carStatusData,
         lapData,
+        finalClassificationData,
         eventsThisSession: eventsThisSession.current,
       }}
     >

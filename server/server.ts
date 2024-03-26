@@ -44,8 +44,16 @@ TelemetryServer.on("lapData", (data) => {
   io.emit("lapData", toJSON(data));
 });
 
+TelemetryServer.on("sessionHistory", (data) => {
+  io.emit("sessionHistory", toJSON(data));
+});
+
 TelemetryServer.on("event", (data) => {
   io.emit("event", toJSON(data));
+});
+
+TelemetryServer.on("finalClassification", (data) => {
+  io.emit("finalClassification", toJSON(data));
 });
 
 TelemetryServer.on("error", (error: Error) => {

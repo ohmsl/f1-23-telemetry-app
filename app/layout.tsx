@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { AlertProvider } from "./providers/AlertProvider";
+import { NotificationProvider } from "./providers/NotificationProvider";
+import SnackbarProvider from "./providers/SnackbarProvider";
 import ThemeProvider from "./providers/ThemeProvider";
 import { TelemetryProvider } from "./providers/telemetry/TelemetryProvider";
 
@@ -17,9 +18,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ThemeProvider>
-          <AlertProvider>
-            <TelemetryProvider>{children}</TelemetryProvider>
-          </AlertProvider>
+          <SnackbarProvider>
+            <NotificationProvider>
+              <TelemetryProvider>{children}</TelemetryProvider>
+            </NotificationProvider>
+          </SnackbarProvider>
         </ThemeProvider>
       </body>
     </html>

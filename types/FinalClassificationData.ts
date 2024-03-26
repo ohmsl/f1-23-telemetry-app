@@ -6,9 +6,7 @@ export interface FinalClassificationData {
   m_gridPosition: number; // Grid position of the car
   m_points: number; // Number of points scored
   m_numPitStops: number; // Number of pit stops made
-  m_resultStatus: number; // Result status - 0 = invalid, 1 = inactive, 2 = active
-  // 3 = finished, 4 = didnotfinish, 5 = disqualified
-  // 6 = not classified, 7 = retired
+  m_resultStatus: number; // Result status - 0 = invalid, 1 = inactive, 2 = active 3 = finished, 4 = didnotfinish, 5 = disqualified 6 = not classified, 7 = retired
   m_bestLapTimeInMS: number; // Best lap time of the session in milliseconds
   m_totalRaceTime: number;
   m_penaltiesTime: number; // Total penalties accumulated in seconds

@@ -43,8 +43,8 @@ const theme = createTheme({
       gradient: "linear-gradient(145deg, #2cdb75, #1AAB4A)",
     },
     secondary: {
-      main: "#00ab91",
-      gradient: "linear-gradient(145deg, #00ab91, #007D6A)",
+      main: "#AB00DC",
+      gradient: "linear-gradient(145deg, #AB00DC, #7A5FFF)",
     },
     error: {
       main: "#EF3265",
