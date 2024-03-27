@@ -10,9 +10,6 @@ export const LapDisplay: React.FC<LapDisplayProps> = ({
   totalLaps,
 }) => (
   <Box>
-    <Typography variant="h6" color="text.secondary">
-      Lap
-    </Typography>
     <Box sx={{ display: "flex", gap: 1 }}>
       <Typography variant="h4">{currentLap || "--"}</Typography>
       <Typography variant="h6" color="text.secondary">{`/ ${
