@@ -25,19 +25,19 @@ const LapTiming = ({
   const lapHistoryData = thisVehicleSessionHistory?.m_lapHistoryData;
   const personalBestLapTime = lapHistoryData
     ? lapHistoryData[thisVehicleSessionHistory?.m_bestLapTimeLapNum - 1]
-        .m_lapTimeInMS
+        ?.m_lapTimeInMS
     : undefined;
   const personalBestSector1Time = lapHistoryData
     ? lapHistoryData[thisVehicleSessionHistory?.m_bestSector1LapNum - 1]
-        .m_sector1TimeInMS
+        ?.m_sector1TimeInMS
     : undefined;
   const personalBestSector2Time = lapHistoryData
     ? lapHistoryData[thisVehicleSessionHistory?.m_bestSector2LapNum - 1]
-        .m_sector2TimeInMS
+        ?.m_sector2TimeInMS
     : undefined;
   const personalBestSector3Time = lapHistoryData
     ? lapHistoryData[thisVehicleSessionHistory?.m_bestSector3LapNum - 1]
-        .m_sector3TimeInMS
+        ?.m_sector3TimeInMS
     : undefined;
 
   useEffect(() => {
@@ -90,9 +90,7 @@ const LapTiming = ({
           labelColor={
             (lapData?.m_lastLapTimeInMS ?? 0) === personalBestLapTime
               ? "success.main"
-              : (lapData?.m_lastLapTimeInMS ?? 0) <= (0 ?? 0)
-              ? "secondary"
-              : "default"
+              : "text.primary"
           }
           chipText={
             computeDelta(lapData?.m_lastLapTimeInMS ?? 0, personalBestLapTime)
