@@ -20,7 +20,7 @@ import duration from "dayjs/plugin/duration";
 import { useState } from "react";
 import BasicSessionInfo from "./components/BasicSessionInfo";
 import CarStatus from "./components/CarStatus";
-import LapTiming from "./components/LapTiming";
+import LapTiming from "./components/LapTiming/LapTiming";
 import Navbar from "./components/Navbar";
 import TyreWearIndicator from "./components/TyreWearIndicator";
 import { Tyre } from "./helpers/getTyreData";
