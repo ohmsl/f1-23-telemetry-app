@@ -56,6 +56,10 @@ TelemetryServer.on("finalClassification", (data) => {
   io.emit("finalClassification", toJSON(data));
 });
 
+TelemetryServer.on("motion", (data) => {
+  io.emit("motion", toJSON(data));
+});
+
 TelemetryServer.on("error", (error: Error) => {
   console.error(error);
 });

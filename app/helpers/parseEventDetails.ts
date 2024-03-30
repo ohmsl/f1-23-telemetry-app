@@ -42,9 +42,9 @@ const parseEventDetails = (
         ).driverName
       } won the race!`;
     case "PENA":
-      return `A penalty was issued: ${
+      return `A penalty was issued: ${parsePenalty(
         (event.m_eventDetails as PenaltyData).penaltyType
-      } for ${
+      )} for ${
         parseVechicleIndex(
           (event.m_eventDetails as PenaltyData).vehicleIdx,
           participantData

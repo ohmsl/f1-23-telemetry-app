@@ -1,7 +1,10 @@
 import { PacketEventData } from "@/types/PacketEventData";
 import { ParticipantData } from "@/types/ParticipantData";
+import Delete from "@mui/icons-material/Delete";
 import {
+  IconButton,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -17,12 +20,12 @@ import parseEventString from "../helpers/parseEventString";
 dayjs.extend(duration);
 
 type EventLogProps = {
-  events: Array<PacketEventData>;
-  participantData: Array<ParticipantData>;
+  events: Array<PacketEventData> | undefined;
+  participantData: Array<ParticipantData> | undefined;
 };
 
 const EventLog = ({ events, participantData }: EventLogProps) => {
-  events = events.filter((event) => event.m_eventStringCode !== "BUTN");
+  events = events?.filter((event) => event.m_eventStringCode !== "BUTN");
   return (
     <Paper
       variant="outlined"
@@ -33,11 +36,17 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
         overflowY: "auto",
         ...darkScrollbar(),
         overflow: "hidden",
+        flex: 1,
       }}
     >
-      <Typography variant="h6" gutterBottom>
-        Event Log
-      </Typography>
+      <Stack direction="row" justifyContent="space-between">
+        <Typography variant="h6" gutterBottom>
+          Event Log
+        </Typography>
+        <IconButton>
+          <Delete />
+        </IconButton>
+      </Stack>
       <Paper sx={{ overflowX: "auto" }}>
         <Table>
           <TableHead>
@@ -48,7 +57,7 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {events.map((event, index) => (
+            {events?.map((event, index) => (
               <TableRow
                 key={index}
                 sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
@@ -62,7 +71,9 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
                   {parseEventString(event.m_eventStringCode)}
                 </TableCell>
                 <TableCell align="right">
-                  {parseEventDetails(event, participantData)}
+                  {event &&
+                    participantData &&
+                    parseEventDetails(event, participantData)}
                 </TableCell>
               </TableRow>
             ))}

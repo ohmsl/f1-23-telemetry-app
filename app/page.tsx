@@ -13,18 +13,17 @@ import {
   Paper,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useState } from "react";
 import BasicSessionInfo from "./components/BasicSessionInfo";
 import CarStatus from "./components/CarStatus";
+import EventLog from "./components/EventLog";
 import LapTiming from "./components/LapTiming/LapTiming";
 import Navbar from "./components/Navbar";
 import TyreWearIndicator from "./components/TyreWearIndicator";
 import { Tyre } from "./helpers/getTyreData";
-import { useNotifications } from "./providers/NotificationProvider";
 import { useTelemetry } from "./providers/telemetry/TelemetryProvider";
 dayjs.extend(duration);
 
@@ -89,8 +88,6 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
 };
 
 export default function Home() {
-  const theme = useTheme();
-  const { postNotification } = useNotifications();
   const {
     connected,
     sessionData,
@@ -100,7 +97,7 @@ export default function Home() {
     carDamageData,
     carStatusData,
     lapData,
-    finalClassificationData,
+    eventsThisSession,
   } = useTelemetry();
   const [telemetryIndex, setTelemetryIndex] = useState<number>(0);
 
@@ -113,7 +110,7 @@ export default function Home() {
         icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
       />
       <Container maxWidth="xl">
-        <Stack spacing={2} width="100%" px={2}>
+        <Stack spacing={2} width="100%">
           <Navbar />
           <BasicSessionInfo sessionData={sessionData} />
           <Stack direction="row" spacing={2} width="100%">
@@ -295,6 +292,11 @@ export default function Home() {
             />
           </Stack>
         </Stack>
+        <Divider sx={{ my: 2 }} />
+        <EventLog
+          events={eventsThisSession}
+          participantData={participantsData?.m_participants}
+        />
       </Container>
     </>
   );

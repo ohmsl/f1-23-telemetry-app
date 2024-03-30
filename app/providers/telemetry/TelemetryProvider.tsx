@@ -1,13 +1,21 @@
 "use client";
 import { PacketCarDamageData } from "@/types/CarDamageData";
+import { PacketMotionData } from "@/types/CarMotionData";
 import { PacketCarStatusData } from "@/types/CarStatusData";
 import { PacketCarTelemetryData } from "@/types/CarTelemetryData";
-import { PacketFinalClassificationData } from "@/types/FinalClassificationData";
+import {
+  FinalClassificationData,
+  PacketFinalClassificationData,
+} from "@/types/FinalClassificationData";
 import { PacketLapData } from "@/types/LapData";
 import { PacketEventData } from "@/types/PacketEventData";
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
-import { PacketParticipantsData } from "@/types/ParticipantData";
+import {
+  PacketParticipantsData,
+  ParticipantData,
+} from "@/types/ParticipantData";
+import { useRouter } from "next/navigation";
 import React, {
   createContext,
   useContext,
@@ -28,7 +36,8 @@ interface TelemetryContextType {
   carStatusData: PacketCarStatusData | undefined;
   lapData: PacketLapData | undefined;
   finalClassificationData: PacketFinalClassificationData | undefined;
-  eventsThisSession: Array<PacketEventData>;
+  eventsThisSession: Array<PacketEventData> | undefined;
+  motionData: PacketMotionData | undefined;
 }
 
 const TelemetryContext = createContext<TelemetryContextType | undefined>(
@@ -48,7 +57,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const socket = useRef<Socket | null>(null);
   // const jsonParserWorker = useRef<Worker>();
-
+  const router = useRouter();
   const { postNotification } = useNotifications();
 
   const [connected, setConnected] = useState<boolean>(false);
@@ -63,6 +72,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   const [carDamageData, setCarDamageData] = useState<PacketCarDamageData>();
   const [carStatusData, setCarStatusData] = useState<PacketCarStatusData>();
   const [lapData, setLapData] = useState<PacketLapData>();
+  const [motionData, setMotionData] = useState<PacketMotionData>();
 
   const eventsThisSession = useRef<Array<PacketEventData>>([]);
 
@@ -78,8 +88,9 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
     carDamage?: PacketCarDamageData;
     carStatus?: PacketCarStatusData;
     lapData?: PacketLapData;
-    event?: PacketEventData;
     finalClassification?: PacketFinalClassificationData;
+    motionData?: PacketMotionData;
+    event?: PacketEventData;
   }>({});
 
   useEffect(() => {
@@ -97,14 +108,17 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     const checkAndSetDataIfComplete = () => {
-      const requiredTypes = ["carTelemetry", "carStatus", "lapData"];
+      const requiredTypes = [
+        "carTelemetry",
+        "carStatus",
+        "lapData",
+        "motionData",
+      ];
 
       if (requiredTypes.every((type) => type in dataBuffer.current)) {
         setCarTelemetryData(dataBuffer.current.carTelemetry);
         setCarStatusData(dataBuffer.current.carStatus);
         setLapData(dataBuffer.current.lapData);
-
-        // Update other states as necessary
 
         if (dataBuffer.current.session) {
           setSessionData(dataBuffer.current.session);
@@ -124,6 +138,10 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (dataBuffer.current.finalClassification) {
           setFinalClassificationData(dataBuffer.current.finalClassification);
+        }
+
+        if (dataBuffer.current.motionData) {
+          setMotionData(dataBuffer.current.motionData);
         }
 
         if (dataBuffer.current.event) {
@@ -169,13 +187,19 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       checkAndSetDataIfComplete();
     });
 
-    socket.current.on("event", (data) => {
-      dataBuffer.current.event = JSON.parse(data);
+    socket.current.on("finalClassification", (data) => {
+      dataBuffer.current.finalClassification = JSON.parse(data);
       checkAndSetDataIfComplete();
     });
 
-    socket.current.on("finalClassification", (data) => {
-      dataBuffer.current.finalClassification = JSON.parse(data);
+    socket.current.on("motion", (data) => {
+      console.log("Received motion data");
+      dataBuffer.current.motionData = JSON.parse(data);
+      checkAndSetDataIfComplete();
+    });
+
+    socket.current.on("event", (data) => {
+      dataBuffer.current.event = JSON.parse(data);
       checkAndSetDataIfComplete();
     });
 
@@ -186,16 +210,48 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (finalClassificationData) {
+      const existingData = JSON.parse(
+        localStorage.getItem("finalClassification") || "{}"
+      ) as {
+        [key: string]: {
+          timestamp: number;
+          sessionData: PacketSessionData;
+          data: Array<{
+            finalClassificationData: FinalClassificationData;
+            participantsData: ParticipantData;
+          }>;
+        };
+      };
+      localStorage.setItem(
+        "finalClassification",
+        JSON.stringify({
+          ...existingData,
+          [finalClassificationData.m_header.session_uid.toString()]: {
+            timestamp: Date.now(),
+            sessionData: sessionData,
+            data: finalClassificationData.m_classificationData.map(
+              (data, index) => ({
+                finalClassificationData: data,
+                participantsData: participantsData!.m_participants[index],
+              })
+            ),
+          },
+        })
+      );
       postNotification({
-        message: "Race results are in!",
+        message: "Session results are in!",
         timestamp: Date.now(),
         action: {
           label: "View",
-          onClick: () => {},
+          onClick: () => {
+            router.push(
+              `/results/${finalClassificationData.m_header.session_uid}`
+            );
+          },
         },
       });
     }
-  }, [finalClassificationData, postNotification]);
+  }, [finalClassificationData, postNotification, router]);
 
   return (
     <TelemetryContext.Provider
@@ -209,6 +265,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         carStatusData,
         lapData,
         finalClassificationData,
+        motionData,
         eventsThisSession: eventsThisSession.current,
       }}
     >
