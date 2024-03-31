@@ -740,9 +740,17 @@ export class TelemetryServer extends EventEmitter {
                 .nest("m_header", { type: PacketHeaderParser })
                 .string("m_eventStringCode", { length: 4 })
                 .parse(msg);
+            } else if (EventStringCode === "DRSE") {
+              data = new Parser()
+                .endianess("little")
+                .nest("m_header", { type: PacketHeaderParser })
+                .string("m_eventStringCode", { length: 4 })
+                .parse(msg);
             } else {
               console.log("Unknown event string code: ", EventStringCode);
             }
+
+            console.log(data);
 
             this.emit("event", data);
             break;

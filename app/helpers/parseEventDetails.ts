@@ -12,6 +12,8 @@ import {
   StopGoPenaltyServedData,
 } from "@/types/PacketEventData";
 import { ParticipantData } from "@/types/ParticipantData";
+import { parseInfringement } from "./parseInfringement";
+import { parsePenalty } from "./parsePenalty";
 import parseVechicleIndex from "./parseVehicleIndex";
 
 const parseEventDetails = (
@@ -42,14 +44,24 @@ const parseEventDetails = (
         ).driverName
       } won the race!`;
     case "PENA":
-      return `A penalty was issued: ${parsePenalty(
-        (event.m_eventDetails as PenaltyData).penaltyType
-      )} for ${
+      return `${
+        (event.m_eventDetails as PenaltyData).time !== 255
+          ? `${
+              (event.m_eventDetails as PenaltyData).time
+            } second ${parsePenalty(
+              (event.m_eventDetails as PenaltyData).penaltyType
+            ).toLowerCase()}`
+          : `${parsePenalty(
+              (event.m_eventDetails as PenaltyData).penaltyType
+            )} `
+      } for ${
         parseVechicleIndex(
           (event.m_eventDetails as PenaltyData).vehicleIdx,
           participantData
         ).driverName
-      } - ${(event.m_eventDetails as PenaltyData).infringementType}`;
+      }: ${parseInfringement(
+        (event.m_eventDetails as PenaltyData).infringementType
+      )}`;
     case "SPTP":
       return `Speed trap triggered by ${
         parseVechicleIndex(
@@ -98,7 +110,7 @@ const parseEventDetails = (
       }`;
 
     default:
-      return "Unknown event";
+      return "No details available";
   }
 };
 

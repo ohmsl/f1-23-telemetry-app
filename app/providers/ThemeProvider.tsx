@@ -25,11 +25,11 @@ export default function ThemeProvider({
           display: "flex",
           width: "100%",
           height: isMobile ? "100%" : "100vh",
+          maxHeight: "100vh",
           justifyContent: "center",
-          overflowY: "auto",
-          overflowX: "hidden",
+          overflow: "hidden",
           flexWrap: "wrap",
-          py: 8,
+          py: 4,
         }}
       >
         {children}

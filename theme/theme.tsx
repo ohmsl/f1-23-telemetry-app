@@ -59,7 +59,7 @@ const theme = createTheme({
       gradient: "linear-gradient(145deg, #FFBE7D, #FF7F00)",
     },
     info: {
-      main: "#b2a5ff",
+      main: "#0A91C2",
       gradient: "linear-gradient(145deg, #b2a5ff, #7A5FFF)",
     },
     text: {

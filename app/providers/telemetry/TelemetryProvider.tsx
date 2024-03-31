@@ -1,4 +1,6 @@
 "use client";
+import { parseInfringement } from "@/app/helpers/parseInfringement";
+import { parsePenalty } from "@/app/helpers/parsePenalty";
 import { PacketCarDamageData } from "@/types/CarDamageData";
 import { PacketMotionData } from "@/types/CarMotionData";
 import { PacketCarStatusData } from "@/types/CarStatusData";
@@ -8,7 +10,13 @@ import {
   PacketFinalClassificationData,
 } from "@/types/FinalClassificationData";
 import { PacketLapData } from "@/types/LapData";
-import { PacketEventData } from "@/types/PacketEventData";
+import {
+  FastestLapData,
+  PacketEventData,
+  PenaltyData,
+  RaceWinnerData,
+  RetirementData,
+} from "@/types/PacketEventData";
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
 import {
@@ -16,6 +24,7 @@ import {
   ParticipantData,
 } from "@/types/ParticipantData";
 import { useRouter } from "next/navigation";
+import { useSnackbar } from "notistack";
 import React, {
   createContext,
   useContext,
@@ -59,6 +68,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   // const jsonParserWorker = useRef<Worker>();
   const router = useRouter();
   const { postNotification } = useNotifications();
+  const { enqueueSnackbar } = useSnackbar();
 
   const [connected, setConnected] = useState<boolean>(false);
   const [sessionData, setSessionData] = useState<PacketSessionData>();
@@ -145,7 +155,10 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         }
 
         if (dataBuffer.current.event) {
-          eventsThisSession.current.push(dataBuffer.current.event);
+          eventsThisSession.current = [
+            dataBuffer.current.event,
+            ...eventsThisSession.current,
+          ];
         }
 
         dataBuffer.current = {};
@@ -199,8 +212,68 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     socket.current.on("event", (data) => {
-      dataBuffer.current.event = JSON.parse(data);
+      const parsedData = JSON.parse(data) as PacketEventData;
+      if (parsedData.m_eventStringCode === "SSTA") {
+        eventsThisSession.current = [];
+      }
+      dataBuffer.current.event = parsedData;
       checkAndSetDataIfComplete();
+
+      if (parsedData.m_eventStringCode === "FTLP") {
+        const fastestLapData = parsedData.m_eventDetails as FastestLapData;
+        const driver = participantsData?.m_participants.find(
+          (participant) => participant.m_aiControlled === 0
+        );
+        enqueueSnackbar(
+          `${driver?.m_name} set the fastest lap with a time of ${fastestLapData.lapTime}`,
+          {
+            variant: "info",
+          }
+        );
+      } else if (parsedData.m_eventStringCode === "RTMT") {
+        const retirementData = parsedData.m_eventDetails as RetirementData;
+        const driver = participantsData?.m_participants.find(
+          (participant) =>
+            participant.m_raceNumber === retirementData.vehicleIdx
+        );
+        enqueueSnackbar(`${driver?.m_name} retired`, {
+          variant: "error",
+        });
+      } else if (parsedData.m_eventStringCode === "TMPT") {
+        enqueueSnackbar(`Your team mate entered the pits`, {
+          variant: "info",
+        });
+      } else if (parsedData.m_eventStringCode === "RCWN") {
+        const raceWinnerData = parsedData.m_eventDetails as RaceWinnerData;
+        const driver = participantsData?.m_participants.find(
+          (participant) =>
+            participant.m_raceNumber === raceWinnerData.vehicleIdx
+        );
+        enqueueSnackbar(`${driver?.m_name} won the race!`, {
+          variant: "info",
+        });
+      } else if (parsedData.m_eventStringCode === "PENA") {
+        const penaltyData = parsedData.m_eventDetails as PenaltyData;
+        const driver = participantsData?.m_participants[penaltyData.vehicleIdx];
+        enqueueSnackbar(
+          `${
+            penaltyData.time !== 255
+              ? `${penaltyData.time} second ${parsePenalty(
+                  penaltyData.penaltyType
+                ).toLowerCase()}`
+              : `${parsePenalty(penaltyData.penaltyType)} `
+          } for ${driver?.m_name}: ${parseInfringement(
+            penaltyData.infringementType
+          )}`,
+          {
+            variant: "warning",
+          }
+        );
+      } else if (event.m_eventStringCode === "DRSE") {
+        enqueueSnackbar(`DRS enabled`, {
+          variant: "info",
+        });
+      }
     });
 
     return () => {

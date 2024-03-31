@@ -104,12 +104,15 @@ export default function Home() {
   return (
     <>
       <Chip
-        sx={{ position: "fixed", top: 0, right: 0, m: 2, boxShadow: 8 }}
+        sx={{ position: "fixed", top: 0, left: 0, m: 2, boxShadow: 8 }}
         label={connected ? "Connected" : "Disconnected"}
         color={connected ? "success" : "error"}
         icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
       />
-      <Container maxWidth="xl">
+      <Container
+        maxWidth="xl"
+        sx={{ display: "flex", flexDirection: "column", height: "100%" }}
+      >
         <Stack spacing={2} width="100%">
           <Navbar />
           <BasicSessionInfo sessionData={sessionData} />
@@ -137,7 +140,7 @@ export default function Home() {
                 <Speedometer
                   speed={
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                      ?.m_speed || 0 // carTelemetryData.m_header.player_car_index
+                      ?.m_speed || 0
                   }
                   rpm={
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]
@@ -233,6 +236,42 @@ export default function Home() {
                     color="primary"
                   />
                 </Stack>
+                <Divider flexItem sx={{ my: 0.5 }} />
+                <Stack spacing={1} width="100%">
+                  <Typography variant="h6" textAlign="center">
+                    Pit Window
+                  </Typography>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    justifyContent="space-between"
+                  >
+                    <Typography variant="body2">Ideal Lap</Typography>
+                    <Typography variant="body2">
+                      {sessionData?.m_pitStopWindowIdealLap || "N/A"}
+                    </Typography>
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    justifyContent="space-between"
+                  >
+                    <Typography variant="body2">Latest Lap</Typography>
+                    <Typography variant="body2">
+                      {sessionData?.m_pitStopWindowLatestLap || "N/A"}
+                    </Typography>
+                  </Stack>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    justifyContent="space-between"
+                  >
+                    <Typography variant="body2">Rejoin Pos.</Typography>
+                    <Typography variant="body2">
+                      {sessionData?.m_pitStopRejoinPosition || "N/A"}
+                    </Typography>
+                  </Stack>
+                </Stack>
               </Paper>
             </Paper>
             <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
@@ -292,11 +331,18 @@ export default function Home() {
             />
           </Stack>
         </Stack>
-        <Divider sx={{ my: 2 }} />
-        <EventLog
-          events={eventsThisSession}
-          participantData={participantsData?.m_participants}
-        />
+        <Stack
+          sx={{
+            flex: 1,
+            overflowY: "auto",
+            pt: 2,
+          }}
+        >
+          <EventLog
+            events={eventsThisSession}
+            participantData={participantsData?.m_participants}
+          />
+        </Stack>
       </Container>
     </>
   );

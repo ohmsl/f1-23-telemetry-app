@@ -11,7 +11,6 @@ import {
   TableHead,
   TableRow,
   Typography,
-  darkScrollbar,
 } from "@mui/material";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
@@ -32,14 +31,14 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
       sx={{
         p: 2,
         width: "100%",
-        maxHeight: "100%",
         overflowY: "auto",
-        ...darkScrollbar(),
-        overflow: "hidden",
         flex: 1,
+        "&::-webkit-scrollbar": {
+          display: "none",
+        },
       }}
     >
-      <Stack direction="row" justifyContent="space-between">
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Typography variant="h6" gutterBottom>
           Event Log
         </Typography>
@@ -65,7 +64,7 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
                 <TableCell>
                   {dayjs
                     .duration(event.m_header.session_time, "seconds")
-                    .format("mm:ss")}
+                    .format("HH:mm:ss")}
                 </TableCell>
                 <TableCell>
                   {parseEventString(event.m_eventStringCode)}

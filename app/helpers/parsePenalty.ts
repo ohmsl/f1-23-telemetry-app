@@ -1,4 +1,4 @@
-const parsePenalty = (penaltyId: number): string => {
+export const parsePenalty = (penaltyId: number): string => {
   switch (penaltyId) {
     case 0:
       return "Drive through";
