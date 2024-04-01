@@ -47,7 +47,7 @@ const theme = createTheme({
       gradient: "linear-gradient(145deg, #AB00DC, #7A5FFF)",
     },
     error: {
-      main: "#EF3265",
+      main: "#f44336",
       gradient: "linear-gradient(145deg, #EF3265, #B8002E)",
     },
     success: {
@@ -55,8 +55,8 @@ const theme = createTheme({
       gradient: "linear-gradient(145deg, #2cdb75, #1AAB4A)",
     },
     warning: {
-      main: "#f89a00",
-      gradient: "linear-gradient(145deg, #FFBE7D, #FF7F00)",
+      main: "#f8ec00",
+      gradient: "linear-gradient(145deg, #FFBE7D, #f8ec00)",
     },
     info: {
       main: "#0A91C2",

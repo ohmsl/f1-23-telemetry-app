@@ -1,14 +1,10 @@
 "use client";
-import { ChevronLeft, ChevronRight } from "@mui/icons-material";
-import CancelIcon from "@mui/icons-material/Cancel";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import {
   Box,
   Chip,
   CircularProgress,
   Container,
   Divider,
-  IconButton,
   LinearProgress,
   Paper,
   Stack,
@@ -18,7 +14,8 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useState } from "react";
 import BasicSessionInfo from "./components/BasicSessionInfo";
-import CarStatus from "./components/CarStatus";
+import CentralTelemetry from "./components/CentralTelemetry";
+import ConnectedChip from "./components/ConnectedChip";
 import EventLog from "./components/EventLog";
 import LapTiming from "./components/LapTiming/LapTiming";
 import Navbar from "./components/Navbar";
@@ -103,18 +100,18 @@ export default function Home() {
 
   return (
     <>
-      <Chip
-        sx={{ position: "fixed", top: 0, left: 0, m: 2, boxShadow: 8 }}
-        label={connected ? "Connected" : "Disconnected"}
-        color={connected ? "success" : "error"}
-        icon={connected ? <CheckCircleIcon /> : <CancelIcon />}
-      />
+      <ConnectedChip connected={connected} />
       <Container
         maxWidth="xl"
         sx={{ display: "flex", flexDirection: "column", height: "100%" }}
       >
         <Stack spacing={2} width="100%">
-          <Navbar />
+          <Navbar
+            telemetryIndex={telemetryIndex}
+            setTelemetryIndex={setTelemetryIndex}
+            carTelemetryData={carTelemetryData?.m_carTelemetryData}
+            participantsData={participantsData?.m_participants}
+          />
           <BasicSessionInfo sessionData={sessionData} />
           <Stack direction="row" spacing={2} width="100%">
             <Paper
@@ -274,55 +271,17 @@ export default function Home() {
                 </Stack>
               </Paper>
             </Paper>
-            <Paper sx={{ p: 2, overflowX: "auto" }} variant="outlined">
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 2,
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 1,
-                }}
-              >
-                <Typography variant="h6">Telemetry</Typography>
-                <div>
-                  {`${telemetryIndex + 1} /
-                ${carTelemetryData?.m_carTelemetryData.length || 1} - 
-                ${
-                  participantsData?.m_participants[telemetryIndex]?.m_name ||
-                  "Unavailable"
-                }`}
-                  <IconButton
-                    onClick={() => {
-                      if (telemetryIndex > 0) {
-                        setTelemetryIndex(telemetryIndex - 1);
-                      }
-                    }}
-                  >
-                    <ChevronLeft />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => {
-                      if (
-                        telemetryIndex <
-                        (carTelemetryData?.m_carTelemetryData.length || 1) - 1
-                      ) {
-                        setTelemetryIndex(telemetryIndex + 1);
-                      }
-                    }}
-                  >
-                    <ChevronRight />
-                  </IconButton>
-                </div>
-              </Box>
-              <CarStatus
-                carTelemetryData={
-                  carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                }
-                carDamageData={carDamageData?.m_car_damage_data[telemetryIndex]}
-                carStatusData={carStatusData?.m_car_status_data[telemetryIndex]}
-              />
-            </Paper>
+            <CentralTelemetry
+              vehicleIndex={telemetryIndex}
+              setVehicleIndex={setTelemetryIndex}
+              activeVehicles={participantsData?.m_numActiveCars || 1}
+              carTelemetryData={
+                carTelemetryData?.m_carTelemetryData[telemetryIndex]
+              }
+              participantData={participantsData?.m_participants[telemetryIndex]}
+              carDamageData={carDamageData?.m_car_damage_data[telemetryIndex]}
+              carStatusData={carStatusData?.m_car_status_data[telemetryIndex]}
+            />
             <LapTiming
               lapData={lapData?.m_lapData[telemetryIndex]}
               sessionData={sessionData}

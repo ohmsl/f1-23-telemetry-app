@@ -29,6 +29,8 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
     <Paper
       variant="outlined"
       sx={{
+        display: "flex",
+        flexDirection: "column",
         p: 2,
         width: "100%",
         overflowY: "auto",
@@ -46,7 +48,7 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
           <Delete />
         </IconButton>
       </Stack>
-      <Paper sx={{ overflowX: "auto" }}>
+      <Paper sx={{ overflowX: "auto", flex: 1 }}>
         <Table>
           <TableHead>
             <TableRow>

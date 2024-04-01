@@ -1,9 +1,10 @@
 import { CarDamageData } from "@/types/CarDamageData";
 import { CarStatusData } from "@/types/CarStatusData";
 import { CarTelemetryData } from "@/types/CarTelemetryData";
-import { Box, Stack, Typography } from "@mui/material";
+import { Stack } from "@mui/material";
 import getTyreData, { Tyre } from "../helpers/getTyreData";
 import Car from "./Car/Car";
+import CarBannerAlert from "./CarBannerAlert";
 import StatStack from "./StatStack";
 
 type Props = {
@@ -18,50 +19,30 @@ const CarStatus = ({
   carStatusData,
 }: Props) => {
   return (
-    <Stack position="relative">
+    <Stack>
       <Stack direction="row">
         {!carTelemetryData && (
-          <Box
-            sx={{
-              position: "absolute",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              zIndex: 1,
-              width: "70%",
-              py: 2,
-              background:
-                "linear-gradient(90deg, transparent, #000, transparent)",
-              "@keyframes offline": {
-                "0%": {
-                  opacity: 1,
-                },
-                "50%": {
-                  opacity: 0.5,
-                },
-                "100%": {
-                  opacity: 1,
-                },
-              },
-            }}
-          >
-            <Typography
-              variant="h4"
-              align="center"
-              color="error"
-              sx={[
-                {
-                  textTransform: "uppercase",
-                  letterSpacing: 2,
-                  fontWeight: "bold",
-                  animation: "offline 2s infinite ease-in-out",
-                },
-              ]}
-            >
-              Offline
-            </Typography>
-          </Box>
+          <CarBannerAlert message="No Data" severity="error" pulse />
         )}
+        {carStatusData?.m_vehicle_fia_flags === 1 && (
+          <CarBannerAlert message="Green Flag" severity="success" />
+        )}
+        {carStatusData?.m_vehicle_fia_flags === 2 && (
+          <CarBannerAlert
+            message="Cede Position"
+            severity="info"
+            pulse
+            invertColors
+          />
+        )}
+        {carStatusData?.m_vehicle_fia_flags === 3 && (
+          <CarBannerAlert
+            message="Yellow Flag"
+            severity="warning"
+            invertColors
+          />
+        )}
+
         <Stack justifyContent="space-between">
           <StatStack
             title="FL TYRE"
@@ -83,7 +64,7 @@ const CarStatus = ({
                 color: "primary",
               },
             ]}
-            sx={{ mt: 10 }}
+            sx={{ mt: 10, minWidth: 150 }}
           />
           <StatStack
             title="RL TYRE"
@@ -105,7 +86,7 @@ const CarStatus = ({
                 color: "primary",
               },
             ]}
-            sx={{ mb: 4 }}
+            sx={{ mb: 4, minWidth: 150 }}
           />
         </Stack>
         <Stack spacing={2}>
@@ -136,7 +117,7 @@ const CarStatus = ({
               },
             ]}
             align="right"
-            sx={{ mt: 10 }}
+            sx={{ mt: 10, minWidth: 150 }}
           />
           <StatStack
             title="RR TYRE"
@@ -159,7 +140,7 @@ const CarStatus = ({
               },
             ]}
             align="right"
-            sx={{ mb: 4 }}
+            sx={{ mb: 4, minWidth: 150 }}
           />
         </Stack>
       </Stack>

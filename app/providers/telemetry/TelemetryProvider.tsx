@@ -232,10 +232,8 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         );
       } else if (parsedData.m_eventStringCode === "RTMT") {
         const retirementData = parsedData.m_eventDetails as RetirementData;
-        const driver = participantsData?.m_participants.find(
-          (participant) =>
-            participant.m_raceNumber === retirementData.vehicleIdx
-        );
+        const driver =
+          participantsData?.m_participants[retirementData.vehicleIdx];
         enqueueSnackbar(`${driver?.m_name} retired`, {
           variant: "error",
         });
@@ -245,10 +243,8 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         });
       } else if (parsedData.m_eventStringCode === "RCWN") {
         const raceWinnerData = parsedData.m_eventDetails as RaceWinnerData;
-        const driver = participantsData?.m_participants.find(
-          (participant) =>
-            participant.m_raceNumber === raceWinnerData.vehicleIdx
-        );
+        const driver =
+          participantsData?.m_participants[raceWinnerData.vehicleIdx];
         enqueueSnackbar(`${driver?.m_name} won the race!`, {
           variant: "info",
         });
@@ -269,7 +265,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
             variant: "warning",
           }
         );
-      } else if (event.m_eventStringCode === "DRSE") {
+      } else if (parsedData.m_eventStringCode === "DRSE") {
         enqueueSnackbar(`DRS enabled`, {
           variant: "info",
         });

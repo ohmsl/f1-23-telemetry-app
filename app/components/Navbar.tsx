@@ -1,4 +1,6 @@
-import { Notifications } from "@mui/icons-material";
+import { CarTelemetryData } from "@/types/CarTelemetryData";
+import { ParticipantData } from "@/types/ParticipantData";
+import { ChevronLeft, ChevronRight, Notifications } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
@@ -18,7 +20,19 @@ import { useState } from "react";
 import { useNotifications } from "../providers/NotificationProvider";
 dayjs.extend(relativeTime);
 
-const Navbar = () => {
+type Props = {
+  telemetryIndex: number;
+  setTelemetryIndex: (index: number) => void;
+  carTelemetryData: Array<CarTelemetryData> | undefined;
+  participantsData: Array<ParticipantData> | undefined;
+};
+
+const Navbar = ({
+  telemetryIndex,
+  setTelemetryIndex,
+  carTelemetryData,
+  participantsData,
+}: Props) => {
   const { deleteNotification, notifications } = useNotifications();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -35,6 +49,29 @@ const Navbar = () => {
       }}
       variant="dense"
     >
+      <div>
+        {`${telemetryIndex + 1} /
+                ${carTelemetryData?.length || 1} - 
+                ${participantsData?.[telemetryIndex]?.m_name || "Unavailable"}`}
+        <IconButton
+          onClick={() => {
+            if (telemetryIndex > 0) {
+              setTelemetryIndex(telemetryIndex - 1);
+            }
+          }}
+        >
+          <ChevronLeft />
+        </IconButton>
+        <IconButton
+          onClick={() => {
+            if (telemetryIndex < (carTelemetryData?.length || 1) - 1) {
+              setTelemetryIndex(telemetryIndex + 1);
+            }
+          }}
+        >
+          <ChevronRight />
+        </IconButton>
+      </div>
       <IconButton size="large" onClick={handleNotificationsClick}>
         <Badge badgeContent={notifications.length} color="error">
           <Notifications sx={{ fontSize: 30 }} />

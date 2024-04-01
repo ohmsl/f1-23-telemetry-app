@@ -83,7 +83,15 @@ const LapTiming = ({
           totalLaps={sessionData?.m_totalLaps}
         />
 
-        <TimeDisplay label="Current Lap" time={lapData?.m_currentLapTimeInMS} />
+        <TimeDisplay
+          label="Current Lap"
+          time={lapData?.m_currentLapTimeInMS}
+          chipText={`+${
+            ((lapData?.m_deltaToCarInFrontInMS || 0) / 1000).toFixed(3) ||
+            "0.000"
+          }`}
+          chipColor="default"
+        />
         <TimeDisplay
           label="Last Lap"
           time={lapData?.m_lastLapTimeInMS ?? 0}

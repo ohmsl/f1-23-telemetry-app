@@ -56,7 +56,7 @@ const Weather = ({ sessionData }: WeatherProps) => {
   return (
     <Stack direction="row" alignItems="center" spacing={3}>
       <Box>
-        <Typography variant="h6">
+        <Typography variant="h6" sx={{ textWrap: "nowrap" }}>
           {parseWeatherType(
             sessionData?.m_weatherForecastSamples[0]?.m_weather ?? 256
           )}

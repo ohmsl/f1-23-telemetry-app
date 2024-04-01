@@ -13,6 +13,11 @@ export const Monitorables = ({
     if (temp === 0) {
       return "#000000";
     }
+
+    if (temp < 60) {
+      return "#00C500";
+    }
+
     // Define the base HSL values for green
     const baseHue: number = 120;
     const saturation: number = 100;
@@ -37,8 +42,12 @@ export const Monitorables = ({
   };
 
   const determineBrakeColor = (temp: number) => {
-    if (temp === undefined) {
+    if (temp === 0) {
       return "#000000";
+    }
+
+    if (temp < 300) {
+      return "#0AC04C";
     }
 
     // Define the base HSL values for green and red

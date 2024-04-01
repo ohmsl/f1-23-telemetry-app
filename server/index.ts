@@ -40,7 +40,7 @@ export class TelemetryServer extends EventEmitter {
     }
     this.socket.bind({
       port: this.port,
-      address: this.address,
+      // address: this.address,
     });
     this.socket.on("listening", (): void => {
       this.socket.on("message", (msg: Buffer, rinfo: RemoteInfo): void => {
