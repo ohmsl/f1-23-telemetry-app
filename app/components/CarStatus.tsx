@@ -38,6 +38,7 @@ const CarStatus = ({
         {carStatusData?.m_vehicle_fia_flags === 3 && (
           <CarBannerAlert
             message="Yellow Flag"
+            subtitle="CAUTION"
             severity="warning"
             invertColors
           />

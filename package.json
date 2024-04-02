@@ -15,6 +15,7 @@
     "@fontsource/noto-sans": "^5.0.21",
     "@mui/icons-material": "^5.15.14",
     "@mui/material": "^5.15.14",
+    "@mui/x-charts": "^7.1.0",
     "binary-parser": "^2.2.1",
     "concurrently": "^8.2.2",
     "dayjs": "^1.11.10",

@@ -30,12 +30,12 @@ const CarBannerAlert = ({
         width: invertColors ? "100%" : "auto",
         px: 12,
         py: 2,
-        background:
-          backgroundOverride || invertColors
-            ? theme.palette[
-                severity !== "default" ? severity || "info" : "info"
-              ].main
-            : "linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.8), transparent)",
+        background: backgroundOverride
+          ? backgroundOverride
+          : invertColors
+          ? theme.palette[severity !== "default" ? severity || "info" : "info"]
+              .main
+          : "linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.8), transparent)",
         "@keyframes pulse": {
           "0%": {
             opacity: 1,
@@ -52,6 +52,21 @@ const CarBannerAlert = ({
         borderBottom: invertColors ? "1px solid rgba(0, 0, 0, 0.12)" : "none",
       }}
     >
+      {subtitle && (
+        <Typography
+          variant="h6"
+          align="center"
+          sx={{
+            color: invertColors ? theme.palette.warning.main : "#fff",
+            textTransform: "uppercase",
+            letterSpacing: 2,
+            fontWeight: "bold",
+            background: invertColors ? "#000" : "transparent",
+          }}
+        >
+          {subtitle}
+        </Typography>
+      )}
       <Typography
         variant="h4"
         align="center"
@@ -69,20 +84,6 @@ const CarBannerAlert = ({
       >
         {message}
       </Typography>
-      {subtitle && (
-        <Typography
-          variant="h6"
-          align="center"
-          sx={{
-            color: invertColors ? "#000" : "#fff",
-            textTransform: "uppercase",
-            letterSpacing: 2,
-            fontWeight: "bold",
-          }}
-        >
-          {subtitle}
-        </Typography>
-      )}
     </Box>
   );
 };

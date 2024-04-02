@@ -48,7 +48,14 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
           <Delete />
         </IconButton>
       </Stack>
-      <Paper sx={{ overflowX: "auto", flex: 1 }}>
+      <Paper
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          overflowX: "auto",
+          flex: 1,
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>
@@ -80,6 +87,21 @@ const EventLog = ({ events, participantData }: EventLogProps) => {
             ))}
           </TableBody>
         </Table>
+        {events?.length === 0 && (
+          <Stack
+            alignItems="center"
+            justifyContent="center"
+            flex={1}
+            spacing={2}
+          >
+            <Typography variant="h5" fontFamily="Roboto" color="textSecondary">
+              ¯\_(ツ)_/¯
+            </Typography>
+            <Typography align="center" color="textSecondary">
+              No events recorded
+            </Typography>
+          </Stack>
+        )}
       </Paper>
     </Paper>
   );

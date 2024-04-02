@@ -2,14 +2,18 @@
 import {
   Box,
   Chip,
-  CircularProgress,
   Container,
   Divider,
-  LinearProgress,
   Paper,
   Stack,
   Typography,
+  useTheme,
 } from "@mui/material";
+import {
+  GaugeContainer,
+  GaugeReferenceArc,
+  GaugeValueArc,
+} from "@mui/x-charts";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import { useState } from "react";
@@ -21,13 +25,32 @@ import LapTiming from "./components/LapTiming/LapTiming";
 import Navbar from "./components/Navbar";
 import TyreWearIndicator from "./components/TyreWearIndicator";
 import { Tyre } from "./helpers/getTyreData";
+import { parseVisualTyreCompound } from "./helpers/parseTyreCompound";
 import { useTelemetry } from "./providers/telemetry/TelemetryProvider";
 dayjs.extend(duration);
 
-const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
+const Speedometer = ({
+  speed,
+  rpm,
+  throttle,
+  brakes,
+  drs,
+  ersEnabled,
+  gear,
+}: {
+  speed: number;
+  rpm: number;
+  throttle: number;
+  brakes: number;
+  drs: {
+    allowed: boolean;
+    enabled: boolean;
+  };
+  ersEnabled: boolean;
+  gear: number;
+}) => {
+  const theme = useTheme();
   const mph = Math.round(speed * 0.621371);
-  const normalizedSpeed = Math.min(100, Math.max(0, (mph / 250) * 100));
-  const normalizedRpm = Math.min(100, Math.max(0, (rpm / 15000) * 100));
 
   return (
     <Box
@@ -35,37 +58,72 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
       display="inline-flex"
       alignItems="center"
       justifyContent="center"
+      width="300px"
+      height="250px"
     >
-      <CircularProgress
-        variant="determinate"
-        value={normalizedRpm}
-        size={200}
-        thickness={4}
-        sx={{
-          color: (theme) => theme.palette.primary.main,
-          "&.MuiCircularProgress-root": {
-            circle: {
-              strokeLinecap: "round",
-            },
-            "& .MuiCircularProgress-circle": {
-              strokeLinecap: "round",
-            },
-          },
-          "&:before": {
-            content: '""',
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            borderRadius: "50%",
-            borderColor: (theme) => theme.palette.background.paper,
-            borderStyle: "solid",
-            borderWidth: 19,
-            zIndex: -1,
-          },
+      <GaugeContainer
+        value={rpm}
+        valueMax={13500}
+        startAngle={-130}
+        endAngle={130}
+        cornerRadius={8}
+        margin={{
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
         }}
-      />
+        disableAxisListener
+      >
+        <GaugeValueArc style={{ fill: theme.palette.info.main }} />
+        <GaugeReferenceArc />
+      </GaugeContainer>
+      <GaugeContainer
+        value={throttle}
+        valueMax={1}
+        cy="60.5%"
+        cx="50%"
+        innerRadius="60%"
+        outerRadius="75%"
+        sx={{ position: "absolute" }}
+        startAngle={-130}
+        endAngle={44}
+        cornerRadius={4}
+        margin={{
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+        disableAxisListener
+      >
+        <GaugeValueArc />
+        <GaugeReferenceArc />
+      </GaugeContainer>
+      <GaugeContainer
+        value={brakes}
+        valueMax={1}
+        cy="60.5%"
+        cx="50%"
+        innerRadius="60%"
+        outerRadius="75%"
+        sx={{ position: "absolute" }}
+        startAngle={46}
+        endAngle={130}
+        cornerRadius={4}
+        margin={{
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+        disableAxisListener
+      >
+        <GaugeValueArc style={{ fill: theme.palette.error.main }} />
+        <GaugeReferenceArc />
+      </GaugeContainer>
       <Box
-        top={0}
+        top={70}
         left={0}
         bottom={0}
         right={0}
@@ -75,10 +133,19 @@ const Speedometer = ({ speed, rpm }: { speed: number; rpm: number }) => {
         alignItems="center"
         justifyContent="center"
       >
-        <Typography variant="h4">{mph}</Typography>
+        <Typography variant="h4" fontWeight="bold">
+          {mph}
+        </Typography>
         <Typography variant="subtitle2">MPH</Typography>
         <Typography variant="h6">{rpm}</Typography>
         <Typography variant="subtitle2">RPM</Typography>
+        <Stack direction="row" spacing={1} mt={1}>
+          <Chip
+            label="DRS"
+            color={drs.allowed ? "info" : drs.enabled ? "success" : "default"}
+          />
+          <Chip label="ERS" color={ersEnabled ? "success" : "default"} />
+        </Stack>
       </Box>
     </Box>
   );
@@ -134,6 +201,15 @@ export default function Home() {
                   height: "100%",
                 }}
               >
+                <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+                  <Typography variant="h6" color="text.secondary">
+                    POS.
+                  </Typography>
+                  <Typography variant="h4">
+                    {lapData?.m_lapData[telemetryIndex].m_carPosition || "--"}
+                  </Typography>
+                </Box>
+                <Divider flexItem sx={{ mb: 1 }} />
                 <Speedometer
                   speed={
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]
@@ -143,65 +219,60 @@ export default function Home() {
                     carTelemetryData?.m_carTelemetryData[telemetryIndex]
                       ?.m_engineRPM || 0
                   }
-                />
-                <Divider flexItem sx={{ my: 1 }} />
-                <Stack direction="row" spacing={1}>
-                  <Chip
-                    label="DRS"
-                    color={
-                      carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                        ?.m_drs
-                        ? "success"
-                        : carStatusData?.m_car_status_data[telemetryIndex]
-                            .m_drs_allowed === 1
-                        ? "info"
-                        : "default"
-                    }
-                  />
-                  <Chip
-                    label="ERS"
-                    color={
+                  throttle={
+                    carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                      ?.m_throttle || 0
+                  }
+                  brakes={
+                    carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                      ?.m_brake || 0
+                  }
+                  drs={{
+                    allowed:
                       carStatusData?.m_car_status_data[telemetryIndex]
-                        .m_ers_deploy_mode === 1
-                        ? "success"
-                        : carStatusData?.m_car_status_data[telemetryIndex]
-                            .m_ers_deploy_mode === 2
-                        ? "warning"
-                        : "default"
-                    }
-                  />
-                </Stack>
+                        .m_drs_allowed === 1,
+                    enabled:
+                      carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                        ?.m_drs === 1,
+                  }}
+                  ersEnabled={
+                    carStatusData?.m_car_status_data[telemetryIndex]
+                      .m_ers_deploy_mode === 1
+                  }
+                  gear={
+                    carTelemetryData?.m_carTelemetryData[telemetryIndex]
+                      ?.m_gear || 0
+                  }
+                />
+
                 <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
-                  <Typography variant="h6">Gear</Typography>
-                  <Typography variant="h5">
+                  <Typography variant="h5">Gear</Typography>
+                  <Typography variant="h4">
                     {
                       carTelemetryData?.m_carTelemetryData[telemetryIndex]
                         ?.m_gear
                     }
                   </Typography>
                 </Box>
-                <LinearProgress
-                  variant="determinate"
-                  value={
-                    (carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                      ?.m_throttle || 0) * 100
-                  }
-                  sx={{
-                    width: "100%",
-                    borderRadius: 2,
-                    height: 12,
-                  }}
-                />
-                <LinearProgress
-                  variant="determinate"
-                  value={
-                    (carTelemetryData?.m_carTelemetryData[telemetryIndex]
-                      ?.m_brake || 0) * 100
-                  }
-                  sx={{ width: "100%", borderRadius: 2, height: 12 }}
-                  color="error"
-                />
-                <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                <Divider flexItem sx={{ my: 1 }} />
+
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  width="100%"
+                  justifyContent="center"
+                >
+                  <Typography variant="h6">
+                    {`${parseVisualTyreCompound(
+                      carStatusData?.m_car_status_data[telemetryIndex]
+                        .m_visual_tyre_compound || 255
+                    )} — ${
+                      carStatusData?.m_car_status_data[telemetryIndex]
+                        .m_tyres_age_laps || 0
+                    } laps`}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
                   <TyreWearIndicator
                     value={
                       carDamageData?.m_car_damage_data[telemetryIndex]
@@ -216,8 +287,7 @@ export default function Home() {
                     }
                     color="primary"
                   />
-                </Stack>
-                <Stack direction="row" spacing={1}>
+
                   <TyreWearIndicator
                     value={
                       carDamageData?.m_car_damage_data[telemetryIndex]
@@ -233,7 +303,8 @@ export default function Home() {
                     color="primary"
                   />
                 </Stack>
-                <Divider flexItem sx={{ my: 0.5 }} />
+
+                <Divider flexItem sx={{ my: 1 }} />
                 <Stack spacing={1} width="100%">
                   <Typography variant="h6" textAlign="center">
                     Pit Window

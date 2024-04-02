@@ -24,11 +24,8 @@ const Alert = React.forwardRef<HTMLDivElement, CustomAlertProps>(
         sx={{
           display: "flex",
           alignItems: "center",
-          fontSize: "1.5rem",
-          ".MuiAlert-icon": {
-            fontSize: "2rem",
-          },
           boxShadow: 12,
+          fontFamily: "Roboto",
         }}
         style={style}
       >
