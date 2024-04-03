@@ -73,7 +73,6 @@ const Speedometer = ({
           right: 0,
           bottom: 0,
         }}
-        disableAxisListener
       >
         <GaugeValueArc style={{ fill: theme.palette.info.main }} />
         <GaugeReferenceArc />
@@ -95,7 +94,6 @@ const Speedometer = ({
           right: 0,
           bottom: 0,
         }}
-        disableAxisListener
       >
         <GaugeValueArc />
         <GaugeReferenceArc />
@@ -117,7 +115,6 @@ const Speedometer = ({
           right: 0,
           bottom: 0,
         }}
-        disableAxisListener
       >
         <GaugeValueArc style={{ fill: theme.palette.error.main }} />
         <GaugeReferenceArc />

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DialogProvider } from "./providers/DialogProvider";
 import { NotificationProvider } from "./providers/NotificationProvider";
 import SnackbarProvider from "./providers/SnackbarProvider";
 import ThemeProvider from "./providers/ThemeProvider";
@@ -18,11 +19,13 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ThemeProvider>
-          <SnackbarProvider>
-            <NotificationProvider>
-              <TelemetryProvider>{children}</TelemetryProvider>
-            </NotificationProvider>
-          </SnackbarProvider>
+          <DialogProvider>
+            <SnackbarProvider>
+              <NotificationProvider>
+                <TelemetryProvider>{children}</TelemetryProvider>
+              </NotificationProvider>
+            </SnackbarProvider>
+          </DialogProvider>
         </ThemeProvider>
       </body>
     </html>

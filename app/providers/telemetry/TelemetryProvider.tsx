@@ -27,12 +27,14 @@ import { useRouter } from "next/navigation";
 import { useSnackbar } from "notistack";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
 } from "react";
 import io, { Socket } from "socket.io-client";
+import { useDialog } from "../DialogProvider";
 import { useNotifications } from "../NotificationProvider";
 
 interface TelemetryContextType {
@@ -64,8 +66,35 @@ export const useTelemetry = () => {
 export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { showPrompt } = useDialog();
+
+  const packet_frequency = useRef<number>(0);
+  const frequency_snap_time = useRef<number>(Date.now());
+
+  const checkFrequency = useCallback(() => {
+    if (Date.now() - frequency_snap_time.current > 5000) {
+      const actualFrequency = packet_frequency.current / 5;
+      console.log("Packet frequency:", actualFrequency);
+      if (actualFrequency > 20.5) {
+        showPrompt(
+          "The packet frequency is above 20Hz which could cause performance issues. This may be because of a high packet frequency setting in the game or another instance of the game running on your network.",
+          "High Packet Frequency",
+          "warning"
+        );
+      }
+    }
+    packet_frequency.current = 0;
+    frequency_snap_time.current = Date.now();
+  }, [showPrompt]);
+
+  useEffect(() => {
+    const interval = setInterval(checkFrequency, 5000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [checkFrequency]);
+
   const socket = useRef<Socket | null>(null);
-  // const jsonParserWorker = useRef<Worker>();
   const router = useRouter();
   const { postNotification } = useNotifications();
   const { enqueueSnackbar } = useSnackbar();
@@ -126,6 +155,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       ];
 
       if (requiredTypes.every((type) => type in dataBuffer.current)) {
+        packet_frequency.current += 1;
         setCarTelemetryData(dataBuffer.current.carTelemetry);
         setCarStatusData(dataBuffer.current.carStatus);
         setLapData(dataBuffer.current.lapData);
@@ -206,7 +236,6 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     socket.current.on("motion", (data) => {
-      console.log("Received motion data");
       dataBuffer.current.motionData = JSON.parse(data);
       checkAndSetDataIfComplete();
     });
