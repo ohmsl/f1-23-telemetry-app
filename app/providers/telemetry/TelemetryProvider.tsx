@@ -1,15 +1,18 @@
 "use client";
 import { parseInfringement } from "@/app/helpers/parseInfringement";
 import { parsePenalty } from "@/app/helpers/parsePenalty";
-import { PacketCarDamageData } from "@/types/CarDamageData";
-import { PacketMotionData } from "@/types/CarMotionData";
-import { PacketCarStatusData } from "@/types/CarStatusData";
-import { PacketCarTelemetryData } from "@/types/CarTelemetryData";
+import { CarDamageData, PacketCarDamageData } from "@/types/CarDamageData";
+import { CarMotionData, PacketMotionData } from "@/types/CarMotionData";
+import { CarStatusData, PacketCarStatusData } from "@/types/CarStatusData";
+import {
+  CarTelemetryData,
+  PacketCarTelemetryData,
+} from "@/types/CarTelemetryData";
 import {
   FinalClassificationData,
   PacketFinalClassificationData,
 } from "@/types/FinalClassificationData";
-import { PacketLapData } from "@/types/LapData";
+import { LapData, PacketLapData } from "@/types/LapData";
 import {
   FastestLapData,
   PacketEventData,
@@ -30,6 +33,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -49,11 +53,65 @@ interface TelemetryContextType {
   finalClassificationData: PacketFinalClassificationData | undefined;
   eventsThisSession: Array<PacketEventData> | undefined;
   motionData: PacketMotionData | undefined;
+  [key: string]: any;
 }
 
 const TelemetryContext = createContext<TelemetryContextType | undefined>(
   undefined
 );
+
+type TelemetryReturnType = {
+  connected: boolean;
+  sessionData: PacketSessionData | undefined;
+  sessionHistoryData: PacketSessionHistoryData | undefined;
+  participantsData: PacketParticipantsData | undefined;
+  carTelemetryData: CarTelemetryData | undefined;
+  carDamageData: CarDamageData | undefined;
+  carStatusData: CarStatusData | undefined;
+  lapData: LapData | undefined;
+  finalClassificationData: Array<FinalClassificationData> | undefined;
+  eventsThisSession: Array<PacketEventData> | undefined;
+  motionData: CarMotionData | undefined;
+  [key: string]: any;
+};
+
+export const useVehicleTelemetry = (
+  vehicleIndex: number
+): TelemetryReturnType => {
+  const context = useContext(TelemetryContext);
+  if (context === undefined) {
+    throw new Error("useTelemetry must be used within a TelemetryProvider");
+  }
+
+  // Directly access and memoize the vehicle-specific data
+  const vehicleData = useMemo(() => {
+    const vehicleTelemetryData =
+      context.carTelemetryData?.m_carTelemetryData[vehicleIndex];
+    const vehicleDamageData =
+      context.carDamageData?.m_car_damage_data[vehicleIndex];
+    const vehicleStatusData =
+      context.carStatusData?.m_car_status_data[vehicleIndex];
+    const vehicleLapData = context.lapData?.m_lapData[vehicleIndex];
+    const vehicleMotionData = context.motionData?.m_carMotionData[vehicleIndex];
+
+    return {
+      connected: context.connected,
+      sessionData: context.sessionData,
+      sessionHistoryData: context.sessionHistoryData,
+      participantsData: context.participantsData,
+      carTelemetryData: vehicleTelemetryData,
+      carDamageData: vehicleDamageData,
+      carStatusData: vehicleStatusData,
+      lapData: vehicleLapData,
+      finalClassificationData:
+        context.finalClassificationData?.m_classificationData,
+      eventsThisSession: context.eventsThisSession,
+      motionData: vehicleMotionData,
+    };
+  }, [context, vehicleIndex]);
+
+  return vehicleData;
+};
 
 export const useTelemetry = () => {
   const context = useContext(TelemetryContext);
@@ -69,22 +127,28 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   const { showPrompt } = useDialog();
 
   const packet_frequency = useRef<number>(0);
+  const packet_frequency_history = useRef<Array<number>>([]);
   const frequency_snap_time = useRef<number>(Date.now());
 
   const checkFrequency = useCallback(() => {
-    if (Date.now() - frequency_snap_time.current > 5000) {
-      const actualFrequency = packet_frequency.current / 5;
-      console.log("Packet frequency:", actualFrequency);
-      if (actualFrequency > 20.5) {
-        showPrompt(
-          "The packet frequency is above 20Hz which could cause performance issues. This may be because of a high packet frequency setting in the game or another instance of the game running on your network.",
-          "High Packet Frequency",
-          "warning"
-        );
-      }
+    const actualFrequency = packet_frequency.current / 5;
+    const avgFrequency =
+      packet_frequency_history.current.reduce((a, b) => a + b, 0) /
+      packet_frequency_history.current.length;
+
+    console.log("Packet frequency:", packet_frequency_history.current);
+    if (avgFrequency > 20.5) {
+      showPrompt(
+        "The packet frequency is above 20Hz which could cause performance issues. This may be because of a high packet frequency setting in the game or another instance of the game running on your network.",
+        "High Packet Frequency",
+        "warning"
+      );
     }
     packet_frequency.current = 0;
     frequency_snap_time.current = Date.now();
+    packet_frequency_history.current.push(actualFrequency);
+    if (packet_frequency_history.current.length > 10)
+      packet_frequency_history.current.shift();
   }, [showPrompt]);
 
   useEffect(() => {
@@ -248,56 +312,69 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       dataBuffer.current.event = parsedData;
       checkAndSetDataIfComplete();
 
-      if (parsedData.m_eventStringCode === "FTLP") {
-        const fastestLapData = parsedData.m_eventDetails as FastestLapData;
-        const driver = participantsData?.m_participants.find(
-          (participant) => participant.m_aiControlled === 0
-        );
-        enqueueSnackbar(
-          `${driver?.m_name} set the fastest lap with a time of ${fastestLapData.lapTime}`,
-          {
+      const eventHandlers: { [key: string]: () => void } = {
+        FTLP: () => {
+          const fastestLapData = parsedData.m_eventDetails as FastestLapData;
+          const driver = participantsData?.m_participants.find(
+            (participant) => participant.m_aiControlled === 0
+          );
+          enqueueSnackbar(
+            `${driver?.m_name} set the fastest lap with a time of ${fastestLapData.lapTime}`,
+            {
+              variant: "info",
+            }
+          );
+        },
+        RTMT: () => {
+          const retirementData = parsedData.m_eventDetails as RetirementData;
+          const driver =
+            participantsData?.m_participants[retirementData.vehicleIdx];
+          enqueueSnackbar(`${driver?.m_name} retired`, {
+            variant: "error",
+          });
+        },
+        TMPT: () => {
+          enqueueSnackbar(`Your team mate entered the pits`, {
             variant: "info",
-          }
-        );
-      } else if (parsedData.m_eventStringCode === "RTMT") {
-        const retirementData = parsedData.m_eventDetails as RetirementData;
-        const driver =
-          participantsData?.m_participants[retirementData.vehicleIdx];
-        enqueueSnackbar(`${driver?.m_name} retired`, {
-          variant: "error",
-        });
-      } else if (parsedData.m_eventStringCode === "TMPT") {
-        enqueueSnackbar(`Your team mate entered the pits`, {
-          variant: "info",
-        });
-      } else if (parsedData.m_eventStringCode === "RCWN") {
-        const raceWinnerData = parsedData.m_eventDetails as RaceWinnerData;
-        const driver =
-          participantsData?.m_participants[raceWinnerData.vehicleIdx];
-        enqueueSnackbar(`${driver?.m_name} won the race!`, {
-          variant: "info",
-        });
-      } else if (parsedData.m_eventStringCode === "PENA") {
-        const penaltyData = parsedData.m_eventDetails as PenaltyData;
-        const driver = participantsData?.m_participants[penaltyData.vehicleIdx];
-        enqueueSnackbar(
-          `${
-            penaltyData.time !== 255
-              ? `${penaltyData.time} second ${parsePenalty(
-                  penaltyData.penaltyType
-                ).toLowerCase()}`
-              : `${parsePenalty(penaltyData.penaltyType)} `
-          } for ${driver?.m_name}: ${parseInfringement(
-            penaltyData.infringementType
-          )}`,
-          {
-            variant: "warning",
-          }
-        );
-      } else if (parsedData.m_eventStringCode === "DRSE") {
-        enqueueSnackbar(`DRS enabled`, {
-          variant: "info",
-        });
+          });
+        },
+        RCWN: () => {
+          const raceWinnerData = parsedData.m_eventDetails as RaceWinnerData;
+          const driver =
+            participantsData?.m_participants[raceWinnerData.vehicleIdx];
+          enqueueSnackbar(`${driver?.m_name} won the race!`, {
+            variant: "info",
+          });
+        },
+        PENA: () => {
+          const penaltyData = parsedData.m_eventDetails as PenaltyData;
+          const driver =
+            participantsData?.m_participants[penaltyData.vehicleIdx - 1];
+          enqueueSnackbar(
+            `${
+              penaltyData.time !== 255
+                ? `${penaltyData.time} second ${parsePenalty(
+                    penaltyData.penaltyType
+                  ).toLowerCase()}`
+                : `${parsePenalty(penaltyData.penaltyType)} `
+            } for ${driver?.m_name}: ${parseInfringement(
+              penaltyData.infringementType
+            )}`,
+            {
+              variant: "warning",
+            }
+          );
+        },
+        DRSE: () => {
+          enqueueSnackbar(`DRS enabled`, {
+            variant: "info",
+          });
+        },
+      };
+
+      const eventHandler = eventHandlers[parsedData.m_eventStringCode];
+      if (eventHandler) {
+        eventHandler();
       }
     });
 

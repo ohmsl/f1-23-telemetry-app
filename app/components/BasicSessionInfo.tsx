@@ -1,15 +1,13 @@
-import { PacketSessionData } from "@/types/PacketSessionData";
 import { Box, Divider, Paper, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import parseSessionType from "../helpers/parseSessionType";
 import parseTrackId from "../helpers/parseTrackId";
+import { useTelemetry } from "../providers/telemetry/TelemetryProvider";
 import Weather from "./Weather/Weather";
 
-type Props = {
-  sessionData: PacketSessionData | undefined;
-};
+const BasicSessionInfo = () => {
+  const { sessionData } = useTelemetry();
 
-const BasicSessionInfo = ({ sessionData }: Props) => {
   return (
     <Paper
       sx={{ display: "flex", p: 2, justifyContent: "space-between" }}

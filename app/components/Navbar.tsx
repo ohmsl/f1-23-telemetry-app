@@ -1,5 +1,3 @@
-import { CarTelemetryData } from "@/types/CarTelemetryData";
-import { ParticipantData } from "@/types/ParticipantData";
 import { ChevronLeft, ChevronRight, Notifications } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -18,27 +16,23 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useState } from "react";
 import { useNotifications } from "../providers/NotificationProvider";
+import { useVehicleTelemetry } from "../providers/telemetry/TelemetryProvider";
 dayjs.extend(relativeTime);
 
 type Props = {
-  telemetryIndex: number;
-  setTelemetryIndex: (index: number) => void;
-  carTelemetryData: Array<CarTelemetryData> | undefined;
-  participantsData: Array<ParticipantData> | undefined;
+  vehicleIndex: number;
+  setVehicleIndex: (index: number) => void;
 };
 
-const Navbar = ({
-  telemetryIndex,
-  setTelemetryIndex,
-  carTelemetryData,
-  participantsData,
-}: Props) => {
+const Navbar = ({ vehicleIndex, setVehicleIndex }: Props) => {
   const { deleteNotification, notifications } = useNotifications();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const handleNotificationsClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
+  const { participantsData } = useVehicleTelemetry(vehicleIndex);
 
   return (
     <Toolbar
@@ -50,13 +44,16 @@ const Navbar = ({
       variant="dense"
     >
       <div>
-        {`${telemetryIndex + 1} /
-                ${carTelemetryData?.length || 1} - 
-                ${participantsData?.[telemetryIndex]?.m_name || "Unavailable"}`}
+        {`${vehicleIndex + 1} /
+                ${participantsData?.m_numActiveCars || 1} - 
+                ${
+                  participantsData?.m_participants[vehicleIndex]?.m_name ||
+                  "Unavailable"
+                }`}
         <IconButton
           onClick={() => {
-            if (telemetryIndex > 0) {
-              setTelemetryIndex(telemetryIndex - 1);
+            if (vehicleIndex > 0) {
+              setVehicleIndex(vehicleIndex - 1);
             }
           }}
         >
@@ -64,8 +61,8 @@ const Navbar = ({
         </IconButton>
         <IconButton
           onClick={() => {
-            if (telemetryIndex < (carTelemetryData?.length || 1) - 1) {
-              setTelemetryIndex(telemetryIndex + 1);
+            if (vehicleIndex < (participantsData?.m_numActiveCars || 1) - 1) {
+              setVehicleIndex(vehicleIndex + 1);
             }
           }}
         >

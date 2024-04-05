@@ -11,6 +11,7 @@ import {
 type TimeDisplayProps = {
   label: string;
   time: number | undefined;
+  driverStatus?: string;
   labelColor?: TypographyProps["color"];
   chipText?: string;
   chipColor?: ChipProps["color"];
@@ -20,6 +21,7 @@ type TimeDisplayProps = {
 export const TimeDisplay: React.FC<TimeDisplayProps> = ({
   label,
   time,
+  driverStatus,
   labelColor,
   chipText,
   chipColor = "default",
@@ -33,7 +35,7 @@ export const TimeDisplay: React.FC<TimeDisplayProps> = ({
       {isLastLapsTime && <Chip label="Last" color="default" size="small" />}
     </Stack>
     <Typography variant="h4" color={labelColor || "text.primary"}>
-      {formatTime(time)}
+      {driverStatus ? driverStatus : formatTime(time)}
     </Typography>
     {chipText && <Chip label={chipText} color={chipColor} size="small" />}
   </Box>

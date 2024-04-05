@@ -1,3 +1,4 @@
+import { parseDriverStatus } from "@/app/helpers/parseDriverStatus";
 import { LapData } from "@/types/LapData";
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
@@ -43,7 +44,6 @@ const LapTiming = ({
   useEffect(() => {
     if (sessionHistoryData?.m_carIdx === vehicleIndex) {
       setThisVehicleSessionHistory(sessionHistoryData);
-      console.log("sessionHistoryData", sessionHistoryData);
     }
   }, [sessionHistoryData, vehicleIndex]);
 
@@ -84,8 +84,13 @@ const LapTiming = ({
         />
 
         <TimeDisplay
-          label="Current Lap"
+          label={"Current Lap"}
           time={lapData?.m_currentLapTimeInMS}
+          driverStatus={
+            lapData && lapData.m_driverStatus !== 1
+              ? parseDriverStatus(lapData?.m_driverStatus)
+              : undefined
+          }
           chipText={`+${
             ((lapData?.m_deltaToCarInFrontInMS || 0) / 1000).toFixed(3) ||
             "0.000"
