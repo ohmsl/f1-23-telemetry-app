@@ -3,7 +3,6 @@ import { DialogProvider } from "./providers/DialogProvider";
 import { NotificationProvider } from "./providers/NotificationProvider";
 import SnackbarProvider from "./providers/SnackbarProvider";
 import ThemeProvider from "./providers/ThemeProvider";
-import { TelemetryProvider } from "./providers/telemetry/TelemetryProvider";
 
 export const metadata: Metadata = {
   title: "F1 Telemetry",
@@ -21,9 +20,7 @@ export default function RootLayout({
         <ThemeProvider>
           <DialogProvider>
             <SnackbarProvider>
-              <NotificationProvider>
-                <TelemetryProvider>{children}</TelemetryProvider>
-              </NotificationProvider>
+              <NotificationProvider>{children}</NotificationProvider>
             </SnackbarProvider>
           </DialogProvider>
         </ThemeProvider>

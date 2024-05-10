@@ -1,33 +1,20 @@
-import { CarDamageData } from "@/types/CarDamageData";
-import { CarStatusData } from "@/types/CarStatusData";
-import { CarTelemetryData } from "@/types/CarTelemetryData";
-import { ParticipantData } from "@/types/ParticipantData";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { Box, IconButton, Paper, Typography } from "@mui/material";
 import { useState } from "react";
+import { useVehicleTelemetry } from "../providers/telemetry/TelemetryProvider";
 import CarSetup from "./CarSetup";
 import CarStatus from "./CarStatus";
 
 type Props = {
   vehicleIndex: number;
-  setVehicleIndex: (index: number) => void;
-  activeVehicles: number;
-  carTelemetryData: CarTelemetryData | undefined;
-  participantData: ParticipantData | undefined;
-  carDamageData: CarDamageData | undefined;
-  carStatusData: CarStatusData | undefined;
 };
 
-const CentralTelemetry = ({
-  vehicleIndex,
-  setVehicleIndex,
-  activeVehicles,
-  carTelemetryData,
-  participantData,
-  carDamageData,
-  carStatusData,
-}: Props) => {
+const CentralTelemetry = ({ vehicleIndex }: Props) => {
   const [pageNumber, setPageNumber] = useState(0);
+
+  const { carTelemetryData, carDamageData, carStatusData, participantsData } =
+    useVehicleTelemetry(vehicleIndex);
+
   return (
     <Paper
       sx={{ position: "relative", p: 2, overflowX: "auto" }}

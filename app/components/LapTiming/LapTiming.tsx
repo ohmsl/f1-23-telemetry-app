@@ -1,27 +1,22 @@
+import { computeDelta } from "@/app/helpers/computeDelta";
 import { parseDriverStatus } from "@/app/helpers/parseDriverStatus";
-import { LapData } from "@/types/LapData";
-import { PacketSessionData } from "@/types/PacketSessionData";
+import { useVehicleTelemetry } from "@/app/providers/telemetry/TelemetryProvider";
 import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
 import { Paper } from "@mui/material";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { LapDisplay } from "./LapDisplay";
 import { TimeDisplay } from "./TimeDisplay";
 
 type LapTimingProps = {
-  lapData: LapData | undefined;
-  sessionData: PacketSessionData | undefined;
-  sessionHistoryData: PacketSessionHistoryData | undefined;
   vehicleIndex: number;
 };
 
-const LapTiming = ({
-  lapData,
-  sessionData,
-  sessionHistoryData,
-  vehicleIndex,
-}: LapTimingProps) => {
+const LapTiming = ({ vehicleIndex }: LapTimingProps) => {
   const [thisVehicleSessionHistory, setThisVehicleSessionHistory] =
     useState<PacketSessionHistoryData>();
+
+  const { lapData, sessionData, sessionHistoryData } =
+    useVehicleTelemetry(vehicleIndex);
 
   const lapHistoryData = thisVehicleSessionHistory?.m_lapHistoryData;
   const personalBestLapTime = lapHistoryData
@@ -47,26 +42,6 @@ const LapTiming = ({
     }
   }, [sessionHistoryData, vehicleIndex]);
 
-  const computeDelta = useCallback(
-    // return an object with the delta time formatted to '0.000' and the color
-    // green if positive delta, red if negative delta, grey if no delta
-
-    (lapTime: number, personalBestLapTime: number | undefined) => {
-      if (!personalBestLapTime) {
-        return { formattedDelta: "-.---", color: "default" };
-      }
-
-      const delta = lapTime - personalBestLapTime;
-      const formattedDelta = `${delta > 0 ? "+" : ""}${(delta / 1000).toFixed(
-        3
-      )}`;
-      const color = delta > 0 ? "error" : delta < 0 ? "success" : "default";
-
-      return { formattedDelta, color };
-    },
-    []
-  );
-
   return (
     <Paper sx={{ p: 2, overflowX: "auto", flex: 1 }} variant="outlined">
       <Paper
@@ -87,7 +62,9 @@ const LapTiming = ({
           label={"Current Lap"}
           time={lapData?.m_currentLapTimeInMS}
           driverStatus={
-            lapData && lapData.m_driverStatus !== 1
+            lapData &&
+            lapData.m_driverStatus !== 1 &&
+            lapData.m_driverStatus !== 4
               ? parseDriverStatus(lapData?.m_driverStatus)
               : undefined
           }

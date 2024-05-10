@@ -76,7 +76,7 @@ type TelemetryReturnType = {
 };
 
 export const useVehicleTelemetry = (
-  vehicleIndex: number
+  vehicleIndex: number = 0
 ): TelemetryReturnType => {
   const context = useContext(TelemetryContext);
   if (context === undefined) {
@@ -267,6 +267,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
     socket.current.on("sessionHistory", (data) => {
       dataBuffer.current.sessionHistory = JSON.parse(data);
       checkAndSetDataIfComplete();
+      console.log(dataBuffer.current.sessionHistory);
     });
 
     socket.current.on("participants", (data) => {
@@ -276,6 +277,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
     socket.current.on("carTelemetry", (data) => {
       dataBuffer.current.carTelemetry = JSON.parse(data);
+      console.log(dataBuffer.current.carTelemetry);
       checkAndSetDataIfComplete();
     });
 
@@ -306,7 +308,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
     socket.current.on("event", (data) => {
       const parsedData = JSON.parse(data) as PacketEventData;
-      if (parsedData.m_eventStringCode === "SSTA") {
+      if (parsedData?.m_eventStringCode === "SSTA") {
         eventsThisSession.current = [];
       }
       dataBuffer.current.event = parsedData;
@@ -315,9 +317,9 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       const eventHandlers: { [key: string]: () => void } = {
         FTLP: () => {
           const fastestLapData = parsedData.m_eventDetails as FastestLapData;
-          const driver = participantsData?.m_participants.find(
-            (participant) => participant.m_aiControlled === 0
-          );
+          const driver =
+            participantsData?.m_participants[fastestLapData.vehicleIdx];
+          console.log(driver);
           enqueueSnackbar(
             `${driver?.m_name} set the fastest lap with a time of ${fastestLapData.lapTime}`,
             {
@@ -329,6 +331,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
           const retirementData = parsedData.m_eventDetails as RetirementData;
           const driver =
             participantsData?.m_participants[retirementData.vehicleIdx];
+          console.log(driver);
           enqueueSnackbar(`${driver?.m_name} retired`, {
             variant: "error",
           });
@@ -342,6 +345,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
           const raceWinnerData = parsedData.m_eventDetails as RaceWinnerData;
           const driver =
             participantsData?.m_participants[raceWinnerData.vehicleIdx];
+          console.log(driver);
           enqueueSnackbar(`${driver?.m_name} won the race!`, {
             variant: "info",
           });
@@ -349,7 +353,8 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         PENA: () => {
           const penaltyData = parsedData.m_eventDetails as PenaltyData;
           const driver =
-            participantsData?.m_participants[penaltyData.vehicleIdx - 1];
+            participantsData?.m_participants[penaltyData.vehicleIdx];
+          console.log(driver);
           enqueueSnackbar(
             `${
               penaltyData.time !== 255
@@ -372,7 +377,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       };
 
-      const eventHandler = eventHandlers[parsedData.m_eventStringCode];
+      const eventHandler = eventHandlers[parsedData?.m_eventStringCode];
       if (eventHandler) {
         eventHandler();
       }
@@ -426,7 +431,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
     }
-  }, [finalClassificationData, postNotification, router]);
+  }, [finalClassificationData]);
 
   return (
     <TelemetryContext.Provider

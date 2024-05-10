@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id                    String   @id @default(cuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  sessionType           Int
+  trackId               Int
+  sessionDuration       Int
+  pitSpeedLimit         Int
+  networkGame           Boolean
+  forecastAccuracy      Int
+  aiDifficulty          Int
+  seasonLinkIdentifier  Int
+  weekendLinkIdentifier Int
+  sessionLinkIdentifier Int
+  totalLaps             Int
+  bestLapNum            Int
+  lapHistory            Lap[]
+}
+
+model Lap {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  lapTimeInMS     Int
+  sector1TimeInMS Int
+  sector2TimeInMS Int
+  sector3TimeInMS Int
+  session         Session  @relation(fields: [sessionId], references: [id])
+  sessionId       String
+  tyres           Tyre[]
+  carSetup        CarSetup?
+}
+
+model Tyre {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tyreLocation Int
+  tyreCompound Int
+  tyreWear     Int
+  lap          Lap      @relation(fields: [lapId], references: [id])
+  lapId        String
+}
+
+model CarSetup {
+  id                     String   @id @default(cuid())
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  frontWing              Int
+  rearWing               Int
+  onThrottle             Int
+  offThrottle            Int
+  frontCamber            Int
+  rearCamber             Int
+  frontToe               Int
+  rearToe                Int
+  frontSuspension        Int
+  rearSuspension         Int
+  frontAntiRollBar       Int
+  rearAntiRollBar        Int
+  frontSuspensionHeight  Int
+  rearSuspensionHeight   Int
+  brakePressure          Int
+  brakeBias              Int
+  frontLeftTyrePressure  Int
+  frontRightTyrePressure Int
+  rearLeftTyrePressure   Int
+  rearRightTyrePressure  Int
+  ballast                Int
+  fuelLoad               Int
+  lap                    Lap      @relation(fields: [lapId], references: [id])
+  lapId                  String @unique
+}

@@ -1,5 +1,3 @@
-import { PacketEventData } from "@/types/PacketEventData";
-import { ParticipantData } from "@/types/ParticipantData";
 import Delete from "@mui/icons-material/Delete";
 import {
   IconButton,
@@ -16,14 +14,14 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import parseEventDetails from "../helpers/parseEventDetails";
 import parseEventString from "../helpers/parseEventString";
+import { useVehicleTelemetry } from "../providers/telemetry/TelemetryProvider";
 dayjs.extend(duration);
 
-type EventLogProps = {
-  events: Array<PacketEventData> | undefined;
-  participantData: Array<ParticipantData> | undefined;
-};
+const EventLog = () => {
+  let { participantsData, eventsThisSession: events } = useVehicleTelemetry();
 
-const EventLog = ({ events, participantData }: EventLogProps) => {
+  let participantData = participantsData?.m_participants;
+
   events = events?.filter((event) => event.m_eventStringCode !== "BUTN");
   return (
     <Paper

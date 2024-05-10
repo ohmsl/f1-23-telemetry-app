@@ -5,8 +5,12 @@ import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import { Box, Chip, IconButton, Menu, MenuItem } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useEffect, useState } from "react";
+import { useVehicleTelemetry } from "../providers/telemetry/TelemetryProvider";
 
-const ConnectedChip = ({ connected }: { connected: boolean }) => {
+const ConnectedChip = () => {
+  const { connected } = useVehicleTelemetry();
+  console.log("chip rendered");
+
   const [clicks, setClicks] = useState(0);
   const [devMode, setDevMode] = useState(false);
   const [devMenuAnchor, setDevMenuAnchor] = useState<null | HTMLElement>(null);
