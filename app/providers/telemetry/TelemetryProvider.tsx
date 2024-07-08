@@ -198,7 +198,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     console.log("Connecting to WebSocket server");
-    socket.current = io("http://localhost:3001");
+    socket.current = io("http://192.168.50.108:3001");
 
     socket.current.on("connect", () => {
       console.log("Connected to WebSocket server");

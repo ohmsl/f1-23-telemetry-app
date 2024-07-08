@@ -30,7 +30,7 @@
     "./server/**/*.ts",
     "./server/**/*.tsx"
   ],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "f1-ai/**/*"],
   "ts-node": {
     "esm": true,
     "compilerOptions": {

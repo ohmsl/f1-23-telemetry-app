@@ -6,6 +6,7 @@ import {
   ThemeProvider as MuiThemeProvider,
   Theme,
 } from "@mui/material";
+import "regenerator-runtime/runtime";
 import useIsMobile from "../hooks/useIsMobile";
 
 export default function ThemeProvider({

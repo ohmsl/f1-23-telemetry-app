@@ -62,7 +62,7 @@ TelemetryServer.on("sessionHistory", (data: PacketSessionHistoryData) => {
   const parsedData = toJSON(data);
   io.emit("sessionHistory", parsedData);
 
-  if (data.m_carIdx === sessionBuffer.m_header.player_car_index) {
+  if (data.m_carIdx === sessionBuffer?.m_header?.player_car_index) {
     const currentLapIdx = data.m_lapHistoryData.findIndex(
       (lap) => lap.m_lapTimeInMS === 0
     );

@@ -23,14 +23,13 @@ export class TelemetryServer extends EventEmitter {
   private socket: Socket;
 
   port: number;
-  address: string;
+  // address: string;
   constructor(options: Options = {}) {
     super();
 
     const { port = DEFAULT_PORT, address = ADDRESS } = options;
 
     this.port = port;
-    this.address = address;
     this.socket = createSocket("udp4");
   }
 
