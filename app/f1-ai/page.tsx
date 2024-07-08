@@ -7,7 +7,7 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import { useDialog } from "../providers/DialogProvider";
-import { speakWithRadioEffect } from "./helpers/speak";
+import { speak } from "./helpers/speak";
 import { useOpenAI } from "./useOpenAI";
 dayjs.extend(LocalizedFormat);
 
@@ -41,10 +41,6 @@ const AIPage = () => {
     }
   }, [browserSupportsSpeechRecognition, isMicrophoneAvailable, showPrompt]);
 
-  useEffect(() => {
-    window.speakWithRadioEffect = speakWithRadioEffect;
-  }, []);
-
   const handlePushToTalk = async () => {
     if (listening) {
       setLog((log) => [
@@ -66,7 +62,7 @@ const AIPage = () => {
             : "Image";
 
         console.log("messageContent", messageContent);
-        speakWithRadioEffect(messageContent);
+        speak(messageContent);
       }
       resetTranscript();
     } else {
