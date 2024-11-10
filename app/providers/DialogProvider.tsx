@@ -4,6 +4,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogProps,
   DialogTitle,
 } from "@mui/material";
@@ -51,13 +52,12 @@ export const DialogProvider: React.FC<DialogProviderProps> = ({ children }) => {
   };
 
   const showPrompt = (message: string, title: string, severity: Severity) => {
-    // Implement your logic to show the prompt using a toast or a custom dialog component
-    // You can use libraries like react-toastify or create your own custom component
-    // Here's an example using MUI Dialog:
     showDialog(
       <>
         <DialogTitle>{title}</DialogTitle>
-        <DialogContent>{message}</DialogContent>
+        <DialogContent>
+          <DialogContentText>{message}</DialogContentText>
+        </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>OK</Button>
         </DialogActions>

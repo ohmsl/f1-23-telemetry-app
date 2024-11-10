@@ -1,4 +1,4 @@
-import { Box, LinearProgress, Typography } from "@mui/material";
+import { Box, Button, LinearProgress, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { useRef } from "react";
 
@@ -36,14 +36,26 @@ const DevPerformanceGauge = () => {
             height: "70px",
           }}
         />
-        <Typography variant="caption">
-          {`Render count: ${renderCount.current}`}
-          <br />
-          {`Render frequency: ${(
-            (renderCount.current / (dayjs().valueOf() - startTime.current)) *
-            1000
-          ).toFixed(0)} Hz`}
-        </Typography>
+        <Stack>
+          <Typography variant="caption">
+            {`Render count: ${renderCount.current}`}
+            <br />
+            {`Render frequency: ${(
+              (renderCount.current / (dayjs().valueOf() - startTime.current)) *
+              1000
+            ).toFixed(0)} Hz`}
+          </Typography>
+          <Button
+            size="small"
+            sx={{ width: "fit-content" }}
+            onClick={() => {
+              startTime.current = dayjs().valueOf();
+              renderCount.current = 0;
+            }}
+          >
+            Reset
+          </Button>
+        </Stack>
       </Box>
     </>
   );

@@ -10,7 +10,6 @@ import type {
   PenaltyData,
   RaceWinnerData,
   RetirementData,
-  SpeedTrapData,
   StartLightsData,
   StopGoPenaltyServedData,
 } from "@/types/PacketEventData";
@@ -51,7 +50,9 @@ export const handleRaceEvent = (data: PacketEventData) => {
     RCWN: () => {
       const details = data.m_eventDetails as RaceWinnerData;
       const driverName = getDriverName(details.vehicleIdx);
-      enqueueSnackbar(`${driverName} has won the race!`);
+      enqueueSnackbar(`${driverName} has won the race!`, {
+        variant: "success",
+      });
     },
     // Penalty Issued
     PENA: () => {
@@ -72,11 +73,11 @@ export const handleRaceEvent = (data: PacketEventData) => {
     },
     // Speed Trap Triggered
     SPTP: () => {
-      const details = data.m_eventDetails as SpeedTrapData;
-      const driverName = getDriverName(details.vehicleIdx);
-      enqueueSnackbar(
-        `${driverName} was caught in the speed trap at ${details.speed} km/h`
-      );
+      // const details = data.m_eventDetails as SpeedTrapData;
+      // const driverName = getDriverName(details.vehicleIdx);
+      // enqueueSnackbar(
+      //   `${driverName} was caught in the speed trap at ${details.speed} km/h`
+      // );
     },
     // Start Lights
     STL: () => {
@@ -98,7 +99,7 @@ export const handleRaceEvent = (data: PacketEventData) => {
     // Flashback
     FLBK: () => {
       const details = data.m_eventDetails as FlashbackData;
-      enqueueSnackbar(
+      console.log(
         `Flashback used to frame identifier ${details.flashbackFrameIdentifier} at session time ${details.flashbackSessionTime}`
       );
     },

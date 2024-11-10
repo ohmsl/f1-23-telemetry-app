@@ -40,7 +40,7 @@ export const Speedometer = ({
         valueMax={13500}
         startAngle={-130}
         endAngle={130}
-        cornerRadius={8}
+        cornerRadius={4}
         margin={{
           top: 0,
           left: 0,
@@ -60,7 +60,7 @@ export const Speedometer = ({
         outerRadius="75%"
         sx={{ position: "absolute" }}
         startAngle={-130}
-        endAngle={44}
+        endAngle={43}
         cornerRadius={4}
         margin={{
           top: 0,

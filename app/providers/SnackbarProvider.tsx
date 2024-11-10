@@ -26,7 +26,6 @@ const Alert = React.forwardRef<HTMLDivElement, CustomAlertProps>(
           alignItems: "center",
           boxShadow: 12,
           fontFamily: "Roboto",
-          fontSize: 16,
         }}
         style={style}
       >

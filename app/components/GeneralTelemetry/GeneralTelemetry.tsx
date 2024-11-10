@@ -3,6 +3,7 @@ import { parseVisualTyreCompound } from "@/app/helpers/parseTyreCompound";
 import { useTelemetryStore } from "@/app/stores/telemetryStore";
 import { Box, Divider, Paper, Stack, Typography } from "@mui/material";
 import { useShallow } from "zustand/shallow";
+import DevPerformanceGauge from "../DevPerformanceGauge";
 import TyreWearIndicator from "../TyreWearIndicator";
 import { Speedometer } from "./Speedometer";
 
@@ -49,6 +50,8 @@ const GeneralTelemetry = ({ vehicleIndex }: Props) => {
           height: "100%",
         }}
       >
+        <DevPerformanceGauge />
+
         <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
           <Typography variant="h6" color="text.secondary">
             POS.
