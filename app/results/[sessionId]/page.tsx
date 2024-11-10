@@ -1,6 +1,6 @@
 "use client";
 import getTeam from "@/app/helpers/getTeam";
-import { useTelemetry } from "@/app/providers/telemetry/TelemetryProvider";
+import { useTelemetryStore } from "@/app/stores/telemetryStore";
 import { FinalClassificationData } from "@/types/FinalClassificationData";
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { ParticipantData } from "@/types/ParticipantData";
@@ -25,12 +25,13 @@ import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useMemo } from "react";
+import { useShallow } from "zustand/shallow";
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
 const ResultsPage = ({ params }: { params: { sessionId: string } }) => {
   const { sessionId } = params;
-  const { connected } = useTelemetry();
+  const connected = useTelemetryStore(useShallow((state) => state.connected));
 
   const localStorageData = useMemo(() => {
     return JSON.parse(localStorage.getItem("finalClassification") || "{}") as {

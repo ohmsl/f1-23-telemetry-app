@@ -42,14 +42,6 @@ export default function Home() {
             <CentralTelemetry vehicleIndex={telemetryIndex} />
             <LapTiming vehicleIndex={telemetryIndex} />
           </Stack>
-        </Stack>
-        <Stack
-          sx={{
-            flex: 1,
-            overflowY: "auto",
-            pt: 2,
-          }}
-        >
           <EventLog />
         </Stack>
       </Container>

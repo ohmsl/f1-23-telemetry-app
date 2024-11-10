@@ -1,12 +1,15 @@
 import { Box, Divider, Paper, Stack, Typography } from "@mui/material";
 import dayjs from "dayjs";
+import { useShallow } from "zustand/shallow";
 import parseSessionType from "../helpers/parseSessionType";
 import parseTrackId from "../helpers/parseTrackId";
-import { useTelemetry } from "../providers/telemetry/TelemetryProvider";
+import { useTelemetryStore } from "../stores/telemetryStore";
 import Weather from "./Weather/Weather";
 
 const BasicSessionInfo = () => {
-  const { sessionData } = useTelemetry();
+  const sessionData = useTelemetryStore(
+    useShallow((state) => state.sessionData)
+  );
 
   return (
     <Paper

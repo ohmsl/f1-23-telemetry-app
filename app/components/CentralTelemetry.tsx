@@ -1,7 +1,8 @@
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import { Box, IconButton, Paper, Typography } from "@mui/material";
 import { useState } from "react";
-import { useVehicleTelemetry } from "../providers/telemetry/TelemetryProvider";
+import { useShallow } from "zustand/shallow";
+import { useTelemetryStore } from "../stores/telemetryStore";
 import CarSetup from "./CarSetup";
 import CarStatus from "./CarStatus";
 
@@ -12,8 +13,14 @@ type Props = {
 const CentralTelemetry = ({ vehicleIndex }: Props) => {
   const [pageNumber, setPageNumber] = useState(0);
 
-  const { carTelemetryData, carDamageData, carStatusData, participantsData } =
-    useVehicleTelemetry(vehicleIndex);
+  const { carTelemetryData, carDamageData, carStatusData } = useTelemetryStore(
+    useShallow((state) => ({
+      carTelemetryData:
+        state.carTelemetryData?.m_carTelemetryData[vehicleIndex],
+      carDamageData: state.carDamageData?.m_car_damage_data[vehicleIndex],
+      carStatusData: state.carStatusData?.m_car_status_data[vehicleIndex],
+    }))
+  );
 
   return (
     <Paper

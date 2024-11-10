@@ -1,4 +1,4 @@
-import { formatTime } from "@/app/helpers/formatLapTime";
+import { formatTime } from "@/app/helpers/formatTime";
 import {
   Box,
   Chip,

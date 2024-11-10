@@ -1,3 +1,4 @@
+"use client";
 import { ChevronLeft, ChevronRight, Notifications } from "@mui/icons-material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -15,8 +16,9 @@ import {
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { useNotifications } from "../providers/NotificationProvider";
-import { useVehicleTelemetry } from "../providers/telemetry/TelemetryProvider";
+import { useTelemetryStore } from "../stores/telemetryStore";
 dayjs.extend(relativeTime);
 
 type Props = {
@@ -32,7 +34,9 @@ const Navbar = ({ vehicleIndex, setVehicleIndex }: Props) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const { participantsData } = useVehicleTelemetry(vehicleIndex);
+  const participantsData = useTelemetryStore(
+    useShallow((state) => state.participantsData)
+  );
 
   return (
     <Toolbar

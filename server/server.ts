@@ -1,7 +1,6 @@
 import { CarDamageData, PacketCarDamageData } from "@/types/CarDamageData";
 import { CarSetupData, PacketCarSetupData } from "@/types/CarSetupData";
 import { CarStatusData, PacketCarStatusData } from "@/types/CarStatusData";
-import { PacketEventData } from "@/types/PacketEventData";
 import { PacketSessionData } from "@/types/PacketSessionData";
 import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
 import { PrismaClient } from "@prisma/client";
@@ -81,8 +80,6 @@ TelemetryServer.on("sessionHistory", (data: PacketSessionHistoryData) => {
         }
       ),
     };
-
-    console.log("Session history buffer updated");
   }
 });
 
@@ -94,85 +91,85 @@ TelemetryServer.on("carSetup", (data: PacketCarSetupData) => {
 
 TelemetryServer.on("event", (data) => {
   io.emit("event", toJSON(data));
-  handleEvent(data);
+  // handleEvent(data);
 });
 
-const handleEvent = async (event: PacketEventData) => {
-  if (event?.m_eventStringCode === "SEND") {
-    prisma.session
-      .create({
-        data: {
-          id: sessionBuffer.m_header.session_uid.toString(),
-          sessionType: sessionBuffer.m_sessionType,
-          trackId: sessionBuffer.m_trackId,
-          sessionDuration: sessionBuffer.m_sessionDuration,
-          pitSpeedLimit: sessionBuffer.m_pitSpeedLimit,
-          networkGame: sessionBuffer.m_networkGame === 1,
-          forecastAccuracy: sessionBuffer.m_forecastAccuracy,
-          aiDifficulty: sessionBuffer.m_aiDifficulty,
-          seasonLinkIdentifier: sessionBuffer.m_seasonLinkIdentifier,
-          weekendLinkIdentifier: sessionBuffer.m_weekendLinkIdentifier,
-          sessionLinkIdentifier: sessionBuffer.m_sessionLinkIdentifier,
-          totalLaps: sessionBuffer.m_totalLaps,
-          bestLapNum: sessionHistoryBuffer?.m_bestLapTimeLapNum ?? 0,
-          lapHistory: sessionHistoryBuffer?.m_lapHistoryData
-            ? {
-                create: sessionHistoryBuffer.m_lapHistoryData
-                  .filter((lap) => lap.m_lapTimeInMS !== 0)
-                  .map((lapData) => ({
-                    lapTimeInMS: lapData.m_lapTimeInMS,
-                    sector1TimeInMS: lapData.m_sector1TimeInMS,
-                    sector2TimeInMS: lapData.m_sector2TimeInMS,
-                    sector3TimeInMS: lapData.m_sector3TimeInMS,
-                    carSetup: {
-                      create: {
-                        frontWing: lapData.carSetup.m_frontWing,
-                        rearWing: lapData.carSetup.m_rearWing,
-                        onThrottle: lapData.carSetup.m_onThrottle,
-                        offThrottle: lapData.carSetup.m_offThrottle,
-                        frontCamber: lapData.carSetup.m_frontCamber,
-                        rearCamber: lapData.carSetup.m_rearCamber,
-                        frontToe: lapData.carSetup.m_frontToe,
-                        rearToe: lapData.carSetup.m_rearToe,
-                        frontSuspension: lapData.carSetup.m_frontSuspension,
-                        rearSuspension: lapData.carSetup.m_rearSuspension,
-                        frontAntiRollBar: lapData.carSetup.m_frontAntiRollBar,
-                        rearAntiRollBar: lapData.carSetup.m_rearAntiRollBar,
-                        frontSuspensionHeight:
-                          lapData.carSetup.m_frontSuspensionHeight,
-                        rearSuspensionHeight:
-                          lapData.carSetup.m_rearSuspensionHeight,
-                        brakePressure: lapData.carSetup.m_brakePressure,
-                        brakeBias: lapData.carSetup.m_brakeBias,
-                        frontTyrePressure:
-                          lapData.carSetup.m_frontLeftTyrePressure,
-                        rearTyrePressure:
-                          lapData.carSetup.m_rearLeftTyrePressure,
-                        ballast: lapData.carSetup.m_ballast,
-                        fuelLoad: lapData.carSetup.m_fuelLoad,
-                      },
-                    },
-                    tyres: {
-                      // create for each tyre which there are 4 of
-                      create: lapData.tyres.map((tyreWear, idx) => ({
-                        tyreLocation: idx,
-                        tyreWear,
-                        tyreCompound: currentCarStatus.m_visual_tyre_compound,
-                      })),
-                    },
-                  })),
-              }
-            : undefined,
-        },
-      })
-      .catch((error) => {
-        console.error(error);
-      })
-      .finally(() => {
-        console.log("Session saved");
-      });
-  }
-};
+// const handleEvent = async (event: PacketEventData) => {
+//   if (event?.m_eventStringCode === "SEND") {
+//     prisma.session
+//       .create({
+//         data: {
+//           id: sessionBuffer.m_header.session_uid.toString(),
+//           sessionType: sessionBuffer.m_sessionType,
+//           trackId: sessionBuffer.m_trackId,
+//           sessionDuration: sessionBuffer.m_sessionDuration,
+//           pitSpeedLimit: sessionBuffer.m_pitSpeedLimit,
+//           networkGame: sessionBuffer.m_networkGame === 1,
+//           forecastAccuracy: sessionBuffer.m_forecastAccuracy,
+//           aiDifficulty: sessionBuffer.m_aiDifficulty,
+//           seasonLinkIdentifier: sessionBuffer.m_seasonLinkIdentifier,
+//           weekendLinkIdentifier: sessionBuffer.m_weekendLinkIdentifier,
+//           sessionLinkIdentifier: sessionBuffer.m_sessionLinkIdentifier,
+//           totalLaps: sessionBuffer.m_totalLaps,
+//           bestLapNum: sessionHistoryBuffer?.m_bestLapTimeLapNum ?? 0,
+//           lapHistory: sessionHistoryBuffer?.m_lapHistoryData
+//             ? {
+//                 create: sessionHistoryBuffer.m_lapHistoryData
+//                   .filter((lap) => lap.m_lapTimeInMS !== 0)
+//                   .map((lapData) => ({
+//                     lapTimeInMS: lapData.m_lapTimeInMS,
+//                     sector1TimeInMS: lapData.m_sector1TimeInMS,
+//                     sector2TimeInMS: lapData.m_sector2TimeInMS,
+//                     sector3TimeInMS: lapData.m_sector3TimeInMS,
+//                     carSetup: {
+//                       create: {
+//                         frontWing: lapData.carSetup.m_frontWing,
+//                         rearWing: lapData.carSetup.m_rearWing,
+//                         onThrottle: lapData.carSetup.m_onThrottle,
+//                         offThrottle: lapData.carSetup.m_offThrottle,
+//                         frontCamber: lapData.carSetup.m_frontCamber,
+//                         rearCamber: lapData.carSetup.m_rearCamber,
+//                         frontToe: lapData.carSetup.m_frontToe,
+//                         rearToe: lapData.carSetup.m_rearToe,
+//                         frontSuspension: lapData.carSetup.m_frontSuspension,
+//                         rearSuspension: lapData.carSetup.m_rearSuspension,
+//                         frontAntiRollBar: lapData.carSetup.m_frontAntiRollBar,
+//                         rearAntiRollBar: lapData.carSetup.m_rearAntiRollBar,
+//                         frontSuspensionHeight:
+//                           lapData.carSetup.m_frontSuspensionHeight,
+//                         rearSuspensionHeight:
+//                           lapData.carSetup.m_rearSuspensionHeight,
+//                         brakePressure: lapData.carSetup.m_brakePressure,
+//                         brakeBias: lapData.carSetup.m_brakeBias,
+//                         frontTyrePressure:
+//                           lapData.carSetup.m_frontLeftTyrePressure,
+//                         rearTyrePressure:
+//                           lapData.carSetup.m_rearLeftTyrePressure,
+//                         ballast: lapData.carSetup.m_ballast,
+//                         fuelLoad: lapData.carSetup.m_fuelLoad,
+//                       },
+//                     },
+//                     tyres: {
+//                       // create for each tyre which there are 4 of
+//                       create: lapData.tyres.map((tyreWear, idx) => ({
+//                         tyreLocation: idx,
+//                         tyreWear,
+//                         tyreCompound: currentCarStatus.m_visual_tyre_compound,
+//                       })),
+//                     },
+//                   })),
+//               }
+//             : undefined,
+//         },
+//       })
+//       .catch((error) => {
+//         console.error(error);
+//       })
+//       .finally(() => {
+//         console.log("Session saved");
+//       });
+//   }
+// };
 
 TelemetryServer.on("finalClassification", (data) => {
   io.emit("finalClassification", toJSON(data));

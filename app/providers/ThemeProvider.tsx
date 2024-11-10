@@ -25,8 +25,7 @@ export default function ThemeProvider({
         sx={{
           display: "flex",
           width: "100%",
-          height: isMobile ? "100%" : "100vh",
-          maxHeight: "100vh",
+          height: "100%",
           justifyContent: "center",
           overflow: "hidden",
           flexWrap: "wrap",

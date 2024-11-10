@@ -1,9 +1,10 @@
 import { computeDelta } from "@/app/helpers/computeDelta";
 import { parseDriverStatus } from "@/app/helpers/parseDriverStatus";
-import { useVehicleTelemetry } from "@/app/providers/telemetry/TelemetryProvider";
+import { useTelemetryStore } from "@/app/stores/telemetryStore";
 import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
 import { Paper } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/shallow";
 import { LapDisplay } from "./LapDisplay";
 import { TimeDisplay } from "./TimeDisplay";
 
@@ -15,8 +16,13 @@ const LapTiming = ({ vehicleIndex }: LapTimingProps) => {
   const [thisVehicleSessionHistory, setThisVehicleSessionHistory] =
     useState<PacketSessionHistoryData>();
 
-  const { lapData, sessionData, sessionHistoryData } =
-    useVehicleTelemetry(vehicleIndex);
+  const { lapData, sessionData, sessionHistoryData } = useTelemetryStore(
+    useShallow((state) => ({
+      lapData: state.lapData?.m_lapData[vehicleIndex],
+      sessionData: state.sessionData,
+      sessionHistoryData: state.sessionHistoryData,
+    }))
+  );
 
   const lapHistoryData = thisVehicleSessionHistory?.m_lapHistoryData;
   const personalBestLapTime = lapHistoryData

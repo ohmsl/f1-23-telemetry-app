@@ -1,134 +1,32 @@
-"use client";
-import { parseInfringement } from "@/app/helpers/parseInfringement";
-import { parsePenalty } from "@/app/helpers/parsePenalty";
-import { CarDamageData, PacketCarDamageData } from "@/types/CarDamageData";
-import { CarMotionData, PacketMotionData } from "@/types/CarMotionData";
-import { CarStatusData, PacketCarStatusData } from "@/types/CarStatusData";
-import {
-  CarTelemetryData,
-  PacketCarTelemetryData,
-} from "@/types/CarTelemetryData";
-import {
-  FinalClassificationData,
-  PacketFinalClassificationData,
-} from "@/types/FinalClassificationData";
-import { LapData, PacketLapData } from "@/types/LapData";
-import {
-  FastestLapData,
-  PacketEventData,
-  PenaltyData,
-  RaceWinnerData,
-  RetirementData,
-} from "@/types/PacketEventData";
-import { PacketSessionData } from "@/types/PacketSessionData";
-import { PacketSessionHistoryData } from "@/types/PacketSessionHistoryData";
-import {
-  PacketParticipantsData,
-  ParticipantData,
-} from "@/types/ParticipantData";
+import { useBufferStore } from "@/app/stores/bufferStore";
+import type { PacketEventData } from "@/types/PacketEventData";
+import type { PacketSessionData } from "@/types/PacketSessionData";
 import { useRouter } from "next/navigation";
-import { useSnackbar } from "notistack";
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import io, { Socket } from "socket.io-client";
+import {
+  useTelemetryStore,
+  type TelemetryDataBufferType,
+} from "../../stores/telemetryStore";
 import { useDialog } from "../DialogProvider";
 import { useNotifications } from "../NotificationProvider";
-
-interface TelemetryContextType {
-  connected: boolean;
-  sessionData: PacketSessionData | undefined;
-  sessionHistoryData: PacketSessionHistoryData | undefined;
-  participantsData: PacketParticipantsData | undefined;
-  carTelemetryData: PacketCarTelemetryData | undefined;
-  carDamageData: PacketCarDamageData | undefined;
-  carStatusData: PacketCarStatusData | undefined;
-  lapData: PacketLapData | undefined;
-  finalClassificationData: PacketFinalClassificationData | undefined;
-  eventsThisSession: Array<PacketEventData> | undefined;
-  motionData: PacketMotionData | undefined;
-  [key: string]: any;
-}
-
-const TelemetryContext = createContext<TelemetryContextType | undefined>(
-  undefined
-);
-
-type TelemetryReturnType = {
-  connected: boolean;
-  sessionData: PacketSessionData | undefined;
-  sessionHistoryData: PacketSessionHistoryData | undefined;
-  participantsData: PacketParticipantsData | undefined;
-  carTelemetryData: CarTelemetryData | undefined;
-  carDamageData: CarDamageData | undefined;
-  carStatusData: CarStatusData | undefined;
-  lapData: LapData | undefined;
-  finalClassificationData: Array<FinalClassificationData> | undefined;
-  eventsThisSession: Array<PacketEventData> | undefined;
-  motionData: CarMotionData | undefined;
-  [key: string]: any;
-};
-
-export const useVehicleTelemetry = (
-  vehicleIndex: number = 0
-): TelemetryReturnType => {
-  const context = useContext(TelemetryContext);
-  if (context === undefined) {
-    throw new Error("useTelemetry must be used within a TelemetryProvider");
-  }
-
-  // Directly access and memoize the vehicle-specific data
-  const vehicleData = useMemo(() => {
-    const vehicleTelemetryData =
-      context.carTelemetryData?.m_carTelemetryData[vehicleIndex];
-    const vehicleDamageData =
-      context.carDamageData?.m_car_damage_data[vehicleIndex];
-    const vehicleStatusData =
-      context.carStatusData?.m_car_status_data[vehicleIndex];
-    const vehicleLapData = context.lapData?.m_lapData[vehicleIndex];
-    const vehicleMotionData = context.motionData?.m_carMotionData[vehicleIndex];
-
-    return {
-      connected: context.connected,
-      sessionData: context.sessionData,
-      sessionHistoryData: context.sessionHistoryData,
-      participantsData: context.participantsData,
-      carTelemetryData: vehicleTelemetryData,
-      carDamageData: vehicleDamageData,
-      carStatusData: vehicleStatusData,
-      lapData: vehicleLapData,
-      finalClassificationData:
-        context.finalClassificationData?.m_classificationData,
-      eventsThisSession: context.eventsThisSession,
-      motionData: vehicleMotionData,
-    };
-  }, [context, vehicleIndex]);
-
-  return vehicleData;
-};
-
-export const useTelemetry = () => {
-  const context = useContext(TelemetryContext);
-  if (context === undefined) {
-    throw new Error("useTelemetry must be used within a TelemetryProvider");
-  }
-  return context;
-};
+import { handleRaceEvent } from "./handleRaceEvent";
 
 export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { showPrompt } = useDialog();
+  const router = useRouter();
+  const socket = useRef<Socket | null>(null);
 
   const packet_frequency = useRef<number>(0);
   const packet_frequency_history = useRef<Array<number>>([]);
   const frequency_snap_time = useRef<number>(Date.now());
+
+  const { showPrompt } = useDialog();
+  const { postNotification } = useNotifications();
+
+  const { setConnected, addEvent } = useTelemetryStore();
+  const { setDataBuffer, checkAndApplyData } = useBufferStore();
 
   const checkFrequency = useCallback(() => {
     const actualFrequency = packet_frequency.current / 5;
@@ -158,44 +56,6 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [checkFrequency]);
 
-  const socket = useRef<Socket | null>(null);
-  const router = useRouter();
-  const { postNotification } = useNotifications();
-  const { enqueueSnackbar } = useSnackbar();
-
-  const [connected, setConnected] = useState<boolean>(false);
-  const [sessionData, setSessionData] = useState<PacketSessionData>();
-  const [sessionHistoryData, setSessionHistoryData] =
-    useState<PacketSessionHistoryData>();
-
-  const [participantsData, setParticipantsData] =
-    useState<PacketParticipantsData>();
-  const [carTelemetryData, setCarTelemetryData] =
-    useState<PacketCarTelemetryData>();
-  const [carDamageData, setCarDamageData] = useState<PacketCarDamageData>();
-  const [carStatusData, setCarStatusData] = useState<PacketCarStatusData>();
-  const [lapData, setLapData] = useState<PacketLapData>();
-  const [motionData, setMotionData] = useState<PacketMotionData>();
-
-  const eventsThisSession = useRef<Array<PacketEventData>>([]);
-
-  const [finalClassificationData, setFinalClassificationData] = useState<
-    PacketFinalClassificationData | undefined
-  >(undefined);
-
-  const dataBuffer = useRef<{
-    session?: PacketSessionData;
-    sessionHistory?: PacketSessionHistoryData;
-    participants?: PacketParticipantsData;
-    carTelemetry?: PacketCarTelemetryData;
-    carDamage?: PacketCarDamageData;
-    carStatus?: PacketCarStatusData;
-    lapData?: PacketLapData;
-    finalClassification?: PacketFinalClassificationData;
-    motionData?: PacketMotionData;
-    event?: PacketEventData;
-  }>({});
-
   useEffect(() => {
     console.log("Connecting to WebSocket server");
     socket.current = io("http://192.168.50.108:3001");
@@ -210,177 +70,34 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
       setConnected(false);
     });
 
-    const checkAndSetDataIfComplete = () => {
-      const requiredTypes = [
-        "carTelemetry",
-        "carStatus",
-        "lapData",
-        "motionData",
-      ];
-
-      if (requiredTypes.every((type) => type in dataBuffer.current)) {
-        packet_frequency.current += 1;
-        setCarTelemetryData(dataBuffer.current.carTelemetry);
-        setCarStatusData(dataBuffer.current.carStatus);
-        setLapData(dataBuffer.current.lapData);
-
-        if (dataBuffer.current.session) {
-          setSessionData(dataBuffer.current.session);
-        }
-
-        if (dataBuffer.current.sessionHistory) {
-          setSessionHistoryData(dataBuffer.current.sessionHistory);
-        }
-
-        if (dataBuffer.current.participants) {
-          setParticipantsData(dataBuffer.current.participants);
-        }
-
-        if (dataBuffer.current.carDamage) {
-          setCarDamageData(dataBuffer.current.carDamage);
-        }
-
-        if (dataBuffer.current.finalClassification) {
-          setFinalClassificationData(dataBuffer.current.finalClassification);
-        }
-
-        if (dataBuffer.current.motionData) {
-          setMotionData(dataBuffer.current.motionData);
-        }
-
-        if (dataBuffer.current.event) {
-          eventsThisSession.current = [
-            dataBuffer.current.event,
-            ...eventsThisSession.current,
-          ];
-        }
-
-        dataBuffer.current = {};
-      }
+    const packetHandlers: { [key: string]: keyof TelemetryDataBufferType } = {
+      session: "sessionData",
+      sessionHistory: "sessionHistoryData",
+      participants: "participantsData",
+      carTelemetry: "carTelemetryData",
+      carDamage: "carDamageData",
+      carStatus: "carStatusData",
+      lapData: "lapData",
+      finalClassification: "finalClassificationData",
+      motion: "motionData",
     };
 
-    socket.current.on("session", (data) => {
-      dataBuffer.current.session = JSON.parse(data);
-      checkAndSetDataIfComplete();
-    });
-
-    socket.current.on("sessionHistory", (data) => {
-      dataBuffer.current.sessionHistory = JSON.parse(data);
-      checkAndSetDataIfComplete();
-      console.log(dataBuffer.current.sessionHistory);
-    });
-
-    socket.current.on("participants", (data) => {
-      dataBuffer.current.participants = JSON.parse(data);
-      checkAndSetDataIfComplete();
-    });
-
-    socket.current.on("carTelemetry", (data) => {
-      dataBuffer.current.carTelemetry = JSON.parse(data);
-      console.log(dataBuffer.current.carTelemetry);
-      checkAndSetDataIfComplete();
-    });
-
-    socket.current.on("carDamage", (data) => {
-      dataBuffer.current.carDamage = JSON.parse(data);
-      checkAndSetDataIfComplete();
-    });
-
-    socket.current.on("carStatus", (data) => {
-      dataBuffer.current.carStatus = JSON.parse(data);
-      checkAndSetDataIfComplete();
-    });
-
-    socket.current.on("lapData", (data) => {
-      dataBuffer.current.lapData = JSON.parse(data);
-      checkAndSetDataIfComplete();
-    });
-
-    socket.current.on("finalClassification", (data) => {
-      dataBuffer.current.finalClassification = JSON.parse(data);
-      checkAndSetDataIfComplete();
-    });
-
-    socket.current.on("motion", (data) => {
-      dataBuffer.current.motionData = JSON.parse(data);
-      checkAndSetDataIfComplete();
+    Object.entries(packetHandlers).forEach(([packet, bufferKey]) => {
+      socket.current?.on(packet, (data) => {
+        setDataBuffer(bufferKey, JSON.parse(data));
+        checkAndApplyData(() => packet_frequency.current++);
+      });
     });
 
     socket.current.on("event", (data) => {
       const parsedData = JSON.parse(data) as PacketEventData;
       if (parsedData?.m_eventStringCode === "SSTA") {
-        eventsThisSession.current = [];
+        useTelemetryStore.setState({ eventsThisSession: [] });
       }
-      dataBuffer.current.event = parsedData;
-      checkAndSetDataIfComplete();
+      addEvent(parsedData);
+      checkAndApplyData();
 
-      const eventHandlers: { [key: string]: () => void } = {
-        FTLP: () => {
-          const fastestLapData = parsedData.m_eventDetails as FastestLapData;
-          const driver =
-            participantsData?.m_participants[fastestLapData.vehicleIdx];
-          console.log(driver);
-          enqueueSnackbar(
-            `${driver?.m_name} set the fastest lap with a time of ${fastestLapData.lapTime}`,
-            {
-              variant: "info",
-            }
-          );
-        },
-        RTMT: () => {
-          const retirementData = parsedData.m_eventDetails as RetirementData;
-          const driver =
-            participantsData?.m_participants[retirementData.vehicleIdx];
-          console.log(driver);
-          enqueueSnackbar(`${driver?.m_name} retired`, {
-            variant: "error",
-          });
-        },
-        TMPT: () => {
-          enqueueSnackbar(`Your team mate entered the pits`, {
-            variant: "info",
-          });
-        },
-        RCWN: () => {
-          const raceWinnerData = parsedData.m_eventDetails as RaceWinnerData;
-          const driver =
-            participantsData?.m_participants[raceWinnerData.vehicleIdx];
-          console.log(driver);
-          enqueueSnackbar(`${driver?.m_name} won the race!`, {
-            variant: "info",
-          });
-        },
-        PENA: () => {
-          const penaltyData = parsedData.m_eventDetails as PenaltyData;
-          const driver =
-            participantsData?.m_participants[penaltyData.vehicleIdx];
-          console.log(driver);
-          enqueueSnackbar(
-            `${
-              penaltyData.time !== 255
-                ? `${penaltyData.time} second ${parsePenalty(
-                    penaltyData.penaltyType
-                  ).toLowerCase()}`
-                : `${parsePenalty(penaltyData.penaltyType)} `
-            } for ${driver?.m_name}: ${parseInfringement(
-              penaltyData.infringementType
-            )}`,
-            {
-              variant: "warning",
-            }
-          );
-        },
-        DRSE: () => {
-          enqueueSnackbar(`DRS enabled`, {
-            variant: "info",
-          });
-        },
-      };
-
-      const eventHandler = eventHandlers[parsedData?.m_eventStringCode];
-      if (eventHandler) {
-        eventHandler();
-      }
+      handleRaceEvent(parsedData);
     });
 
     return () => {
@@ -389,6 +106,10 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
+    const telemetryData = useTelemetryStore.getState();
+
+    const finalClassificationData = telemetryData.finalClassificationData;
+
     if (finalClassificationData) {
       const existingData = JSON.parse(
         localStorage.getItem("finalClassification") || "{}"
@@ -397,8 +118,8 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
           timestamp: number;
           sessionData: PacketSessionData;
           data: Array<{
-            finalClassificationData: FinalClassificationData;
-            participantsData: ParticipantData;
+            finalClassificationData: any;
+            participantsData: any;
           }>;
         };
       };
@@ -408,11 +129,12 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
           ...existingData,
           [finalClassificationData.m_header.session_uid.toString()]: {
             timestamp: Date.now(),
-            sessionData: sessionData,
+            sessionData: telemetryData.sessionData,
             data: finalClassificationData.m_classificationData.map(
               (data, index) => ({
                 finalClassificationData: data,
-                participantsData: participantsData!.m_participants[index],
+                participantsData:
+                  telemetryData.participantsData?.m_participants[index],
               })
             ),
           },
@@ -431,25 +153,7 @@ export const TelemetryProvider: React.FC<{ children: React.ReactNode }> = ({
         },
       });
     }
-  }, [finalClassificationData]);
+  }, [postNotification, router]);
 
-  return (
-    <TelemetryContext.Provider
-      value={{
-        connected,
-        sessionData,
-        sessionHistoryData,
-        participantsData,
-        carTelemetryData,
-        carDamageData,
-        carStatusData,
-        lapData,
-        finalClassificationData,
-        motionData,
-        eventsThisSession: eventsThisSession.current,
-      }}
-    >
-      {children}
-    </TelemetryContext.Provider>
-  );
+  return <>{children}</>;
 };

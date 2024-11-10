@@ -1,4 +1,4 @@
-export const speak = (text: string, audioContext?: AudioContext) => {
+export const speak = (text: string) => {
   if ("speechSynthesis" in window) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.voice =

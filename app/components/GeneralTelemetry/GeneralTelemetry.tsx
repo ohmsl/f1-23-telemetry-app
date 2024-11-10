@@ -1,7 +1,8 @@
 import { Tyre } from "@/app/helpers/getTyreData";
 import { parseVisualTyreCompound } from "@/app/helpers/parseTyreCompound";
-import { useVehicleTelemetry } from "@/app/providers/telemetry/TelemetryProvider";
+import { useTelemetryStore } from "@/app/stores/telemetryStore";
 import { Box, Divider, Paper, Stack, Typography } from "@mui/material";
+import { useShallow } from "zustand/shallow";
 import TyreWearIndicator from "../TyreWearIndicator";
 import { Speedometer } from "./Speedometer";
 
@@ -16,7 +17,16 @@ const GeneralTelemetry = ({ vehicleIndex }: Props) => {
     carTelemetryData,
     lapData,
     sessionData,
-  } = useVehicleTelemetry(vehicleIndex);
+  } = useTelemetryStore(
+    useShallow((state) => ({
+      carDamageData: state.carDamageData?.m_car_damage_data[vehicleIndex],
+      carStatusData: state.carStatusData?.m_car_status_data[vehicleIndex],
+      carTelemetryData:
+        state.carTelemetryData?.m_carTelemetryData[vehicleIndex],
+      lapData: state.lapData?.m_lapData[vehicleIndex],
+      sessionData: state.sessionData,
+    }))
+  );
 
   return (
     <Paper
@@ -46,22 +56,24 @@ const GeneralTelemetry = ({ vehicleIndex }: Props) => {
           <Typography variant="h4">{lapData?.m_carPosition || "--"}</Typography>
         </Box>
         <Divider flexItem sx={{ mb: 1 }} />
-        <Speedometer
-          speed={carTelemetryData?.m_speed || 0}
-          rpm={carTelemetryData?.m_engineRPM || 0}
-          throttle={carTelemetryData?.m_throttle || 0}
-          brakes={carTelemetryData?.m_brake || 0}
-          drs={{
-            allowed: carStatusData?.m_drs_allowed === 1,
-            enabled: carTelemetryData?.m_drs === 1,
-          }}
-          ersEnabled={carStatusData?.m_ers_deploy_mode === 1}
-        />
+        <Stack>
+          <Speedometer
+            speed={carTelemetryData?.m_speed || 0}
+            rpm={carTelemetryData?.m_engineRPM || 0}
+            throttle={carTelemetryData?.m_throttle || 0}
+            brakes={carTelemetryData?.m_brake || 0}
+            drs={{
+              allowed: carStatusData?.m_drs_allowed === 1,
+              enabled: carTelemetryData?.m_drs === 1,
+            }}
+            ersEnabled={carStatusData?.m_ers_deploy_mode === 1}
+          />
 
-        <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
-          <Typography variant="h5">Gear</Typography>
-          <Typography variant="h4">{carTelemetryData?.m_gear}</Typography>
-        </Box>
+          <Box sx={{ display: "flex", gap: 1, justifyContent: "center" }}>
+            <Typography variant="h5">Gear</Typography>
+            <Typography variant="h4">{carTelemetryData?.m_gear}</Typography>
+          </Box>
+        </Stack>
         <Divider flexItem sx={{ my: 1 }} />
 
         <Stack direction="row" spacing={1} width="100%" justifyContent="center">

@@ -26,6 +26,7 @@ const Alert = React.forwardRef<HTMLDivElement, CustomAlertProps>(
           alignItems: "center",
           boxShadow: 12,
           fontFamily: "Roboto",
+          fontSize: 16,
         }}
         style={style}
       >
@@ -46,6 +47,7 @@ const SnackbarProvider = ({ children }: { children: React.ReactNode }) => {
         error: Alert,
         warning: Alert,
         info: Alert,
+        default: Alert,
       }}
     >
       {children}

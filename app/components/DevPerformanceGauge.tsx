@@ -1,24 +1,22 @@
-import { Box, Button, LinearProgress, Typography } from "@mui/material";
+import { Box, LinearProgress, Typography } from "@mui/material";
 import dayjs from "dayjs";
 import { useRef } from "react";
 
 const DevPerformanceGauge = () => {
   const renderCount = useRef(0);
   const startTime = useRef(dayjs().valueOf());
+  const lastRenderTime = useRef(dayjs().valueOf());
 
+  if (dayjs().valueOf() - lastRenderTime.current > 1000) {
+    startTime.current = dayjs().valueOf();
+    renderCount.current = 0;
+  }
+
+  lastRenderTime.current = dayjs().valueOf();
   renderCount.current++;
 
   return (
     <>
-      <LinearProgress
-        sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "70px",
-        }}
-      />
       <Box
         sx={{
           position: "fixed",
@@ -27,17 +25,17 @@ const DevPerformanceGauge = () => {
           m: 2,
           display: "flex",
           gap: 1,
+          zIndex: 9999,
+          background: "black",
+          width: "250px",
         }}
       >
-        <Button
-          variant="contained"
-          onClick={() => {
-            startTime.current = dayjs().valueOf();
-            renderCount.current = 0;
+        <LinearProgress
+          sx={{
+            width: "30%",
+            height: "70px",
           }}
-        >
-          Reset
-        </Button>
+        />
         <Typography variant="caption">
           {`Render count: ${renderCount.current}`}
           <br />

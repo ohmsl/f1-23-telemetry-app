@@ -5,10 +5,11 @@ import SettingsSuggestIcon from "@mui/icons-material/SettingsSuggest";
 import { Box, Chip, IconButton, Menu, MenuItem } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useEffect, useState } from "react";
-import { useVehicleTelemetry } from "../providers/telemetry/TelemetryProvider";
+import { useShallow } from "zustand/shallow";
+import { useTelemetryStore } from "../stores/telemetryStore";
 
 const ConnectedChip = () => {
-  const { connected } = useVehicleTelemetry();
+  const connected = useTelemetryStore(useShallow((state) => state.connected));
   console.log("chip rendered");
 
   const [clicks, setClicks] = useState(0);
